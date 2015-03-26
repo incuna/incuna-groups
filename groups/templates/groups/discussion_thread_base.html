@@ -1,0 +1,25 @@
+{% extends "groups/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block groups_title %}Comments on {{ discussion.name }}{% endblock groups_title %}
+
+{% block groups_subtitle %}
+    <h2>Comments on {{ discussion.name }}</h2>
+{% endblock groups_subtitle %}
+
+{% block groups_main_content %}
+    <ul>
+        {% for comment in comments %}
+            <li>
+                <ul>
+                    <li>{{ comment.body }}</li>
+                    <li>{{ comment.user }}</li>
+                    <li>{{ comment.date_created }}</li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% crispy form %}
+{% endblock groups_main_content %}

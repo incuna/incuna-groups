@@ -1,0 +1,5 @@
+[run]
+source = groups
+omit = *tests*, *migrations*
+[report]
+show_missing = True

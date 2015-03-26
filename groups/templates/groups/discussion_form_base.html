@@ -1,0 +1,13 @@
+{% extends "groups/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block groups_title %}Discuss {{ group.name }}{% endblock groups_title %}
+
+{% block groups_subtitle %}
+    <h2>Start a new discussion about {{ group.name }}</h2>
+{% endblock groups_subtitle %}
+
+{% block groups_main_content %}
+    {% crispy form %}
+{% endblock groups_main_content %}

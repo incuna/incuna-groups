@@ -1,0 +1,24 @@
+{% extends "groups/base.html" %}
+
+{% block groups_title %}Groups{% endblock groups_title %}
+
+{% block groups_main_content %}
+    <table id='id_group_table'>
+        <tr>
+            <th>Name</th>
+            <th>Private</th>
+            <th>Moderators</th>
+            <th></th>
+        </tr>
+        {% for group in object_list %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td>{{ group.is_private }}</td>
+                <td>{{ group.moderators.all }}</td>
+                <td><a href="{{ group.get_absolute_url }}">Details</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    {% include "includes/_pagination.html" %}
+{% endblock groups_main_content %}
