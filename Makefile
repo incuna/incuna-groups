@@ -9,7 +9,7 @@ help:
 release:
 	@(git diff --quiet && git diff --cached --quiet) || (echo "You have uncommitted changes - stash or commit your changes"; exit 1)
 	@git clean -dxf
-	@python setup.py register -r incuna sdist bdist_wheel upload -r incuna
+	@python setup.py register sdist bdist_wheel upload
 
 test:
 	@coverage run groups/tests/run.py --verbosity=${VERBOSITY}
