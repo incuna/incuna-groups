@@ -45,17 +45,20 @@ class DiscussionSubscribeForm(forms.Form):
 
     helper = FormHelper()
     helper.form_class = 'form-horizontal'
-    helper.action = reverse_lazy('discussion-subscribe')
 
     class Meta:
         fields = ('subscribe',)
 
     def __init__(self, *args, **kwargs):
         """
-        Accept a value for the 'subscribe' variable, and build the layout
-        to reflect the action the form will take.
+        Build the layout to reflect the action the form will take.
+
+        Accepts (and requires) a user and a discussion as keyword arguments.
         """
-        to_subscribe = kwargs.pop('subscribe', True)
+        user = kwargs.pop('user')
+        discussion = kwargs.pop('discussion')
+
+        to_subscribe = user not in discussion.subscribers.all()
 
         # setdefault is like 'get', but if it misses, puts the specified
         # default into kwargs and returns *that* object.
@@ -70,3 +73,4 @@ class DiscussionSubscribeForm(forms.Form):
                 Submit('submit', button_text),
             ),
         )
+        self.helper.action = reverse_lazy('discussion-subscribe', pk=discussion.pk)

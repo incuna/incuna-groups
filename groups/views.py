@@ -68,6 +68,7 @@ class DiscussionThread(CreateView):
     """Allows a user to read and comment on a Discussion."""
     model = models.Comment
     form_class = forms.AddComment
+    subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
 
     def get_group(self):
@@ -85,9 +86,12 @@ class DiscussionThread(CreateView):
     def get_context_data(self, *args, **kwargs):
         """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
+        discussion = self.get_discussion()
+        form = self.subscribe_form_class(user=self.request.user, discussion=discussion)
         context['comments'] = self.get_queryset()
-        context['discussion'] = self.get_discussion()
+        context['discussion'] = discussion
         context['group'] = self.get_group()
+        context['subscribe-form'] = form
         return context
 
     def form_valid(self, form):
@@ -104,16 +108,11 @@ class DiscussionSubscribe(FormView):
         return get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
 
     def get_form_kwargs(self):
-        """
-        Add a kwarg denoting whether the subscribe button will subscribe or
-        unsubscribe the user from the attached discussion.
-        """
-        user = self.request.user
-        discussion = self.get_discussion()
-        subscribe = user not in discussion.subscribers.all()
-
         kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
-        kwargs['subscribe'] = subscribe
+        kwargs.update({
+            'user': self.request.user,
+            'discussion': self.get_discussion(),
+        })
         return kwargs
 
     def form_valid(self, form):
