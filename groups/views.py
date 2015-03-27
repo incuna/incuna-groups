@@ -6,12 +6,14 @@ from . import forms, models
 
 
 class GroupList(ListView):
+    """Show a top-level list of discussion groups."""
     model = models.Group
     paginate_by = 5
     template_name = 'groups/group_list.html'
 
 
 class GroupDetail(ListView):
+    """Show the discussions belonging to a group."""
     model = models.Discussion
     paginate_by = 5
     template_name = 'groups/group_detail.html'
@@ -30,6 +32,7 @@ class GroupDetail(ListView):
 
 
 class DiscussionCreate(FormView):
+    """Start a new discussion by writing its first comment."""
     form_class = forms.DiscussionCreate
     template_name = 'groups/discussion_form.html'
 
@@ -60,9 +63,7 @@ class DiscussionCreate(FormView):
 
 
 class DiscussionThread(CreateView):
-    """
-    Comment on a Discussion
-    """
+    """Allows a user to read and comment on a Discussion."""
     model = models.Comment
     form_class = forms.AddComment
     template_name = 'groups/discussion_thread.html'

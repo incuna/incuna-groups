@@ -17,6 +17,7 @@ class CommentManager(models.Manager):
 class Group(models.Model):
     """
     A model for a discussion group, similar to a forum.
+
     Groups can be private, in which case users have to request to join before
     they can read and/or watch the group.  The 'members' field stores such
     users, and isn't used by non-private groups.
