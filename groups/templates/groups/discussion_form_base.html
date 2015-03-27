@@ -8,6 +8,10 @@
     <h2>Start a new discussion about {{ group.name }}</h2>
 {% endblock groups_subtitle %}
 
+{% block back_link %}
+    <p><a href="{% url 'group-detail' pk=group.pk %}">Back to {{ group.name }}</a></p>
+{% endblock back_link %}
+
 {% block groups_main_content %}
     {% crispy form %}
 {% endblock groups_main_content %}

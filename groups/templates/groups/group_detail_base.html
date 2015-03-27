@@ -6,6 +6,10 @@
     <h2>Discussions on {{ group.name }}</h2>
 {% endblock groups_subtitle %}
 
+{% block back_link %}
+    <p><a href="{% url 'group-list' %}">Back to all groups</a></p>
+{% endblock back_link %}
+
 {% block groups_main_content %}
     <a href="{% url 'discussion-create' group.pk %}">Start a new discussion</a>
     <ul>

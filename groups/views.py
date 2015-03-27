@@ -67,6 +67,9 @@ class DiscussionThread(CreateView):
     form_class = forms.AddComment
     template_name = 'groups/discussion_thread.html'
 
+    def get_group(self):
+        return self.get_discussion().group
+
     def get_queryset(self):
         """
         Display only the comments attached to a given discussion, newest at the bottom.
@@ -81,6 +84,7 @@ class DiscussionThread(CreateView):
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
         context['comments'] = self.get_queryset()
         context['discussion'] = self.get_discussion()
+        context['group'] = self.get_group()
         return context
 
     def form_valid(self, form):
