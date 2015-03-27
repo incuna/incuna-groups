@@ -68,8 +68,8 @@ class DiscussionThread(CreateView):
     template_name = 'groups/discussion_thread.html'
 
     def get_queryset(self):
-        """Display only the comments attached to a given discussion,
-        newest at the bottom.
+        """
+        Display only the comments attached to a given discussion, newest at the bottom.
         """
         return self.get_discussion().comments.all()
 
@@ -77,10 +77,7 @@ class DiscussionThread(CreateView):
         return models.Discussion.objects.get(pk=self.kwargs['pk'])
 
     def get_context_data(self, *args, **kwargs):
-        """
-        Attach the discussion and its existing comments to the context, so
-        they can be displayed.
-        """
+        """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
         context['comments'] = self.get_queryset()
         context['discussion'] = self.get_discussion()
