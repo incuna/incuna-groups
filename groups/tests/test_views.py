@@ -127,11 +127,13 @@ class TestDiscussionCreate(RequestTestCase):
         view = self.view_class.as_view()
         response = view(request, pk=group.pk)
 
-        discussion = models.Discussion.objects.all()
-        self.assertEqual(len(discussion), 1)
+        discussion = models.Discussion.objects.get()  # will explode if it doesn't exist
+        self.assertEqual(discussion.creator, user)
+        self.assertEqual(discussion.subscribers.get(), user)
+        self.assertEqual(discussion.comments.get().body, 'Super sensible comment.')
 
         self.assertEqual(response.status_code, 302)
-        expected = reverse('discussion-thread', kwargs={'pk': discussion[0].pk})
+        expected = reverse('discussion-thread', kwargs={'pk': discussion.pk})
         self.assertEqual(response['Location'], expected)
 
 

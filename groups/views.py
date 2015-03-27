@@ -48,15 +48,17 @@ class DiscussionCreate(FormView):
         return reverse('discussion-thread', kwargs={'pk': self.pk})
 
     def form_valid(self, form):
+        user = self.request.user
         discussion = models.Discussion.objects.create(
-            creator=self.request.user,
+            creator=user,
             group=self.get_group(),
             name=form.cleaned_data['name'],
         )
+        discussion.subscribers.add(user)
         models.Comment.objects.create(
             body=form.cleaned_data['comment'],
             discussion=discussion,
-            user=self.request.user,
+            user=user,
         )
         self.pk = discussion.pk
         return super(DiscussionCreate, self).form_valid(form)
