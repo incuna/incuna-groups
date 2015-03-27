@@ -1,2 +1,11 @@
-#v0.1
+v0.1.1
+------
+
+* Fix a deployment bug by adding `MANIFEST.in`.
+* Add a missing requirement for `django`.
+
+v0.1
+----
+
+Initial release.
 
