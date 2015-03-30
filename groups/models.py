@@ -83,11 +83,14 @@ class Comment(models.Model):
         ordering = ('date_created',)
 
     def get_pagejump_anchor(self):
+        """Return a string suitable for use in a page jump to this comment."""
         return 'c{}'.format(self.pk)
 
     def get_pagejump(self):
+        """Return the URL suffix that'll jump to this comment's anchor point."""
         return '#' + self.get_pagejump_anchor()
 
     def get_absolute_url(self):
+        """Return a permalink that'll scroll to this comment on the page."""
         url = reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
         return url + self.get_pagejump()
