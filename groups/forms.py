@@ -12,10 +12,11 @@ class AddComment(forms.ModelForm):
     helper.form_class = 'form-horizontal'
     helper.label_class = 'col-lg-2'
     helper.field_class = 'col-lg-8'
+    helper.form_tag = True
     helper.layout = Layout(
         'body',
         FormActions(
-            Submit('submit', 'Post comment'),
+            Submit('comment-submit', 'Post comment'),
         ),
     )
 
@@ -45,6 +46,7 @@ class DiscussionSubscribeForm(forms.Form):
 
     helper = FormHelper()
     helper.form_class = 'form-horizontal'
+    helper.form_tag = True
 
     class Meta:
         fields = ('subscribe',)
@@ -70,7 +72,10 @@ class DiscussionSubscribeForm(forms.Form):
         button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
         self.helper.layout = Layout(
             FormActions(
-                Submit('submit', button_text),
+                Submit('subscribe-submit', button_text),
             ),
         )
-        self.helper.action = reverse_lazy('discussion-subscribe', pk=discussion.pk)
+        self.helper.form_action = reverse_lazy(
+            'discussion-subscribe',
+            kwargs={'pk': discussion.pk},
+        )

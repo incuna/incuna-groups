@@ -37,7 +37,7 @@ class TestGroupDetail(RenderedContentTestCase):
 class TestDiscussionThread(RenderedContentTestCase):
     view = views.DiscussionThread
 
-    def test_calendar_display(self):
+    def test_discussion_display(self):
         comment_body = 'I am a comment and proud of it!'
         discussion = factories.DiscussionFactory.create()
         comment = factories.CommentFactory.create(
@@ -48,7 +48,7 @@ class TestDiscussionThread(RenderedContentTestCase):
             discussion.name: True,
             comment_body: True,
             str(comment.user): True,
-            reverse('discussion-thread', kwargs={'pk': discussion.pk}): False,
+            reverse('discussion-subscribe', kwargs={'pk': discussion.pk}): True,
             'Post comment': True,  # The label on the 'add comment' button
             'type="submit"': True,  # The button itself
         }

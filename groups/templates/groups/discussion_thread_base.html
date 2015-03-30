@@ -13,6 +13,7 @@
 {% endblock back_link %}
 
 {% block groups_main_content %}
+    {% include "groups/subscribe_button.html" %}
     <ul>
         {% for comment in comments %}
             <li>
