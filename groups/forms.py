@@ -12,7 +12,6 @@ class AddComment(forms.ModelForm):
     helper.form_class = 'form-horizontal'
     helper.label_class = 'col-lg-2'
     helper.field_class = 'col-lg-8'
-    helper.form_tag = True
     helper.layout = Layout(
         'body',
         FormActions(
@@ -44,10 +43,6 @@ class DiscussionCreate(forms.Form):
 class DiscussionSubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
-    helper = FormHelper()
-    helper.form_class = 'form-horizontal'
-    helper.form_tag = True
-
     class Meta:
         fields = ('subscribe',)
 
@@ -67,6 +62,9 @@ class DiscussionSubscribeForm(forms.Form):
         super(DiscussionSubscribeForm, self).__init__(*args, **kwargs)
 
         button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
         self.helper.layout = Layout(
             FormActions(
                 Submit('subscribe-submit', button_text),
