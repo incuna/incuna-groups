@@ -77,9 +77,7 @@ class DiscussionThread(CreateView):
         return super(DiscussionThread, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        """
-        Display only the comments attached to a given discussion, newest at the bottom.
-        """
+        """Display the comments attached to a given discussion, newest at the bottom."""
         return self.discussion.comments.all()
 
     def get_context_data(self, *args, **kwargs):
