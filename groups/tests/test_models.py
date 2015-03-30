@@ -95,7 +95,17 @@ class TestComment(Python2AssertMixin, TestCase):
         ])
         self.assertCountEqual(fields, expected)
 
+    def test_get_pagejump_anchor(self):
+        comment = factories.CommentFactory.create()
+        expected = 'c{}'.format(comment.pk)
+        self.assertEqual(comment.get_pagejump_anchor(), expected)
+
+    def test_get_pagejump(self):
+        comment = factories.CommentFactory.create()
+        expected = '#c{}'.format(comment.pk)
+        self.assertEqual(comment.get_pagejump(), expected)
+
     def test_get_absolute_url(self):
         comment = factories.CommentFactory.create()
-        expected = '/groups/discussions/{}/'.format(comment.discussion.pk)
+        expected = '/groups/discussions/{}/#c{}'.format(comment.discussion.pk, comment.pk)
         self.assertEqual(comment.get_absolute_url(), expected)

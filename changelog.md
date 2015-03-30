@@ -1,3 +1,9 @@
+Upcoming
+------
+
+* Add permalinks to comments.
+
+
 v0.2.0
 ------
 

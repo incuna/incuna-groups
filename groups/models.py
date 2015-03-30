@@ -82,5 +82,12 @@ class Comment(models.Model):
     class Meta:
         ordering = ('date_created',)
 
+    def get_pagejump_anchor(self):
+        return 'c{}'.format(self.pk)
+
+    def get_pagejump(self):
+        return '#' + self.get_pagejump_anchor()
+
     def get_absolute_url(self):
-        return reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
+        url = reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
+        return url + self.get_pagejump()
