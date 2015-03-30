@@ -17,10 +17,11 @@
     <ul>
         {% for comment in comments %}
             <li>
-                <ul>
+                <ul id="{{ comment.get_pagejump_anchor }}">
+                    <li>
+                        {{ comment.user }} wrote at <a href="{{ comment.get_pagejump }}">{{ comment.date_created }}</a>:
+                    </li>
                     <li>{{ comment.body }}</li>
-                    <li>{{ comment.user }}</li>
-                    <li>{{ comment.date_created }}</li>
                 </ul>
             </li>
         {% endfor %}
