@@ -65,7 +65,7 @@ class DiscussionCreate(FormView):
 
 
 class DiscussionThread(CreateView):
-    """Allows a user to read and comment on a Discussion."""
+    """Allow a user to read and comment on a Discussion."""
     model = models.Comment
     form_class = forms.AddComment
     subscribe_form_class = forms.DiscussionSubscribeForm
@@ -100,6 +100,7 @@ class DiscussionThread(CreateView):
 
 
 class DiscussionSubscribe(FormView):
+    """Provide an endpoint for the subscribe/unsubscribe button."""
     form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/subscribe_button.html'
 
