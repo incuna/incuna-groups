@@ -15,7 +15,7 @@ class AddComment(forms.ModelForm):
     helper.layout = Layout(
         'body',
         FormActions(
-            Submit('submit', 'Post comment'),
+            Submit('comment-submit', 'Post comment'),
         ),
     )
 
@@ -43,19 +43,16 @@ class DiscussionCreate(forms.Form):
 class DiscussionSubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
-    helper = FormHelper()
-    helper.form_class = 'form-horizontal'
-    helper.action = reverse_lazy('discussion-subscribe')
-
     class Meta:
         fields = ('subscribe',)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, discussion, *args, **kwargs):
         """
-        Accept a value for the 'subscribe' variable, and build the layout
-        to reflect the action the form will take.
+        Build the layout to reflect the action the form will take.
+
+        Accepts (and requires) a user and a discussion as keyword arguments.
         """
-        to_subscribe = kwargs.pop('subscribe', True)
+        to_subscribe = user not in discussion.subscribers.all()
 
         # setdefault is like 'get', but if it misses, puts the specified
         # default into kwargs and returns *that* object.
@@ -65,8 +62,15 @@ class DiscussionSubscribeForm(forms.Form):
         super(DiscussionSubscribeForm, self).__init__(*args, **kwargs)
 
         button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
         self.helper.layout = Layout(
             FormActions(
-                Submit('submit', button_text),
+                Submit('subscribe-submit', button_text),
             ),
+        )
+        self.helper.form_action = reverse_lazy(
+            'discussion-subscribe',
+            kwargs={'pk': discussion.pk},
         )

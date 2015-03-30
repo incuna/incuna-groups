@@ -2,7 +2,6 @@ import datetime
 
 import pytz
 from django.core.urlresolvers import reverse
-from django.http import Http404
 from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
@@ -127,32 +126,18 @@ class TestDiscussionCreate(RequestTestCase):
         view = self.view_class.as_view()
         response = view(request, pk=group.pk)
 
-        discussion = models.Discussion.objects.all()
-        self.assertEqual(len(discussion), 1)
+        discussion = models.Discussion.objects.get()  # will explode if it doesn't exist
+        self.assertEqual(discussion.creator, user)
+        self.assertEqual(discussion.subscribers.get(), user)
+        self.assertEqual(discussion.comments.get().body, 'Super sensible comment.')
 
         self.assertEqual(response.status_code, 302)
-        expected = reverse('discussion-thread', kwargs={'pk': discussion[0].pk})
+        expected = reverse('discussion-thread', kwargs={'pk': discussion.pk})
         self.assertEqual(response['Location'], expected)
 
 
 class TestDiscussionSubscribe(RequestTestCase):
     view_class = views.DiscussionSubscribe
-
-    def test_get_discussion(self):
-        discussion = factories.DiscussionFactory.create()
-        view = self.view_class()
-
-        # Assert that the discussion is found.
-        view.kwargs = {'pk': discussion.pk}
-        self.assertEqual(discussion, view.get_discussion())
-
-    def test_get_discussion_404(self):
-        view = self.view_class()
-
-        # Assert we get a 404 when we miss.
-        view.kwargs = {'pk': 42424242}
-        with(self.assertRaises(Http404)):
-            view.get_discussion()
 
     def test_form_subscribe(self):
         discussion = factories.DiscussionFactory.create()
@@ -182,22 +167,3 @@ class TestDiscussionSubscribe(RequestTestCase):
         # Assert that the user is now unsubscribed.
         self.assertNotIn(user, discussion.subscribers.all())
         self.assertNotIn(discussion, user.subscribed_discussions.all())
-
-    def test_get_form_kwargs(self):
-        discussion = factories.DiscussionFactory.create()
-        user = self.user_factory.create()
-
-        # Feed the correct data into the view, so we can call get_form_kwargs.
-        request = self.create_request('get', user=user)
-        view = self.view_class()
-        view.request = request
-        view.kwargs = {'pk': discussion.pk}
-
-        # With an unsubscribed user, hitting this view should return
-        # subscribe=True.
-        self.assertTrue(view.get_form_kwargs()['subscribe'])
-
-        # Subscribe the user, then check again.  We should return
-        # subscribe=False now.
-        discussion.subscribers.add(user)
-        self.assertFalse(view.get_form_kwargs()['subscribe'])

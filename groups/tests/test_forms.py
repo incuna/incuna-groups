@@ -1,5 +1,6 @@
 from incuna_test_utils.compat import Python2AssertMixin
 
+from . import factories
 from .utils import RequestTestCase
 from .. import forms, models
 
@@ -57,11 +58,20 @@ class TestDiscussionSubscribeForm(Python2AssertMixin, RequestTestCase):
         self.assertCountEqual(fields, expected)
 
     def test_form_valid(self):
-        form = self.form(data={})
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        form = self.form(data={}, user=user, discussion=discussion)
         self.assertTrue(form.is_valid(), msg=form.errors)
 
-    def test_initial(self):
-        form = self.form(subscribe=True)
+    def test_initial_subscribe(self):
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        form = self.form(user=user, discussion=discussion)
         self.assertTrue(form.initial['subscribe'])
-        form = self.form(subscribe=False)
+
+    def test_initial_unsubscribe(self):
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        discussion.subscribers.add(user)
+        form = self.form(user=user, discussion=discussion)
         self.assertFalse(form.initial['subscribe'])
