@@ -74,7 +74,7 @@ class DiscussionThread(CreateView):
     def dispatch(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
         self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
-        return super().dispatch(request, *args, **kwargs)
+        return super(DiscussionThread, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         """
@@ -105,7 +105,7 @@ class DiscussionSubscribe(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         self.discussion = get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
-        return super().dispatch(request, *args, **kwargs)
+        return super(DiscussionSubscribe, self).dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
