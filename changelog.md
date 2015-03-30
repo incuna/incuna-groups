@@ -1,4 +1,4 @@
-Upcoming
+v0.2.0
 ------
 
 * Implement the ability to subscribe to discussions.
