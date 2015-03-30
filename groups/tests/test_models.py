@@ -92,6 +92,7 @@ class TestComment(Python2AssertMixin, TestCase):
             'user',
             'user_id',
             'date_created',
+            'state',
         ])
         self.assertCountEqual(fields, expected)
 
@@ -109,3 +110,15 @@ class TestComment(Python2AssertMixin, TestCase):
         comment = factories.CommentFactory.create()
         expected = '/groups/discussions/{}/#c{}'.format(comment.discussion.pk, comment.pk)
         self.assertEqual(comment.get_absolute_url(), expected)
+
+    def test_delete_state(self):
+        comment = factories.CommentFactory.create()
+        self.assertEqual(comment.state, comment.STATE_OK)
+        comment.delete_state()
+        self.assertEqual(comment.state, comment.STATE_DELETED)
+
+    def test_is_deleted(self):
+        comment = factories.CommentFactory.create()
+        self.assertFalse(comment.is_deleted())
+        comment.delete_state()
+        self.assertTrue(comment.is_deleted())

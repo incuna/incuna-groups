@@ -72,10 +72,18 @@ class Discussion(models.Model):
 
 class Comment(models.Model):
     """A model for a comment in a discussion thread."""
+    STATE_OK = 'ok'
+    STATE_DELETED = 'deleted'
+    STATE_CHOICES = (
+        (STATE_OK, 'OK'),
+        (STATE_DELETED, 'Deleted'),
+    )
+
     body = models.TextField()
     discussion = models.ForeignKey('groups.Discussion', related_name='comments')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='comments')
     date_created = models.DateTimeField(default=timezone.now)
+    state = models.CharField(max_length=255, choices=STATE_CHOICES, default=STATE_OK)
 
     objects = CommentManager()
 
@@ -94,3 +102,16 @@ class Comment(models.Model):
         """Return a permalink that'll scroll to this comment on the page."""
         url = reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
         return url + self.get_pagejump()
+
+    def delete_state(self):
+        """
+        Cause this comment to show as deleted.
+
+        Named so as not to conflict with the model's built-in delete() method, which
+        removes it from the database.
+        """
+        self.state = self.STATE_DELETED
+        self.save()
+
+    def is_deleted(self):
+        return self.state == self.STATE_DELETED
