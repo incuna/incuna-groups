@@ -1,3 +1,9 @@
+Upcoming
+------
+
+* Implement the ability to subscribe to discussions.
+* Add back links to multiple templates.
+
 v0.1.1
 ------
 
