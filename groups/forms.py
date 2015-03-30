@@ -51,15 +51,12 @@ class DiscussionSubscribeForm(forms.Form):
     class Meta:
         fields = ('subscribe',)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user, discussion, *args, **kwargs):
         """
         Build the layout to reflect the action the form will take.
 
         Accepts (and requires) a user and a discussion as keyword arguments.
         """
-        user = kwargs.pop('user')
-        discussion = kwargs.pop('discussion')
-
         to_subscribe = user not in discussion.subscribers.all()
 
         # setdefault is like 'get', but if it misses, puts the specified
