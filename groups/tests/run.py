@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-"""From http://stackoverflow.com/a/12260597/400691"""
+"""From http://stackoverflow.com/a/12260597/400691."""
 import sys
 from optparse import make_option, OptionParser
 
