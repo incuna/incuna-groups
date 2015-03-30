@@ -71,32 +71,31 @@ class DiscussionThread(CreateView):
     subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
 
-    def get_group(self):
-        return self.get_discussion().group
+    def dispatch(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         """
         Display only the comments attached to a given discussion, newest at the bottom.
         """
-        return self.get_discussion().comments.all()
-
-    def get_discussion(self):
-        return models.Discussion.objects.get(pk=self.kwargs['pk'])
+        return self.discussion.comments.all()
 
     def get_context_data(self, *args, **kwargs):
         """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
-        discussion = self.get_discussion()
+        discussion = self.discussion
         form = self.subscribe_form_class(user=self.request.user, discussion=discussion)
         context['comments'] = self.get_queryset()
         context['discussion'] = discussion
-        context['group'] = self.get_group()
+        context['group'] = discussion.group
         context['subscribe-form'] = form
         return context
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        form.instance.discussion = self.get_discussion()
+        form.instance.discussion = self.discussion
         return super(DiscussionThread, self).form_valid(form)
 
 
@@ -104,27 +103,27 @@ class DiscussionSubscribe(FormView):
     form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/subscribe_button.html'
 
-    def get_discussion(self):
-        return get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
+    def dispatch(self, request, *args, **kwargs):
+        self.discussion = get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
+        return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
         kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
-            'discussion': self.get_discussion(),
+            'discussion': self.discussion,
         })
         return kwargs
 
     def form_valid(self, form):
         user = self.request.user
-        discussion = self.get_discussion()
 
         if form.cleaned_data['subscribe']:
-            discussion.subscribers.add(user)
+            self.discussion.subscribers.add(user)
         else:
-            discussion.subscribers.remove(user)
+            self.discussion.subscribers.remove(user)
 
         return super(DiscussionSubscribe, self).form_valid(form)
 
     def get_success_url(self):
-        return self.get_discussion().get_absolute_url()
+        return self.discussion.get_absolute_url()
