@@ -167,3 +167,54 @@ class TestDiscussionSubscribe(RequestTestCase):
         # Assert that the user is now unsubscribed.
         self.assertNotIn(user, discussion.subscribers.all())
         self.assertNotIn(discussion, user.subscribed_discussions.all())
+
+
+class TestCommentDelete(RequestTestCase):
+    view_class = views.CommentDelete
+
+    def setUp(self):
+        self.comment = factories.CommentFactory.create()
+        self.request = self.create_request(user=self.comment.user)
+
+    def test_get(self):
+        view = self.view_class.as_view()
+        response = view(self.request, pk=self.comment.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['object'], self.comment)
+
+    def test_get_forbidden(self):
+        """A user who isn't allowed to delete the comment sees a 403."""
+        view = self.view_class.as_view()
+        response = view(self.create_request(), pk=self.comment.pk)
+        self.assertEqual(response.status_code, 403)
+
+    def test_post(self):
+        """POSTing to this endpoint deletes the comment."""
+        view = self.view_class.as_view()
+        self.request.method = 'post'
+        response = view(self.request, pk=self.comment.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], self.comment.get_absolute_url())
+
+        updated_comment = models.Comment.objects.get(pk=self.comment.pk)
+        self.assertTrue(updated_comment.is_deleted())
+
+    def test_post_forbidden(self):
+        """A user who isn't allowed to delete the comment sees a 403."""
+        view = self.view_class.as_view()
+        response = view(self.create_request('post'), pk=self.comment.pk)
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete(self):
+        view_obj = self.view_class(request=self.request, kwargs={'pk': self.comment.pk})
+        view_obj.comment = self.comment
+
+        view_obj.delete(self.request)
+        self.assertTrue(self.comment.is_deleted())
+
+    def test_get_success_url(self):
+        view_obj = self.view_class(request=self.request, kwargs={'pk': self.comment.pk})
+        view_obj.comment = self.comment
+
+        expected = self.comment.get_absolute_url()
+        self.assertEqual(view_obj.get_success_url(), expected)

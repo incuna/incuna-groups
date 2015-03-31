@@ -1,6 +1,8 @@
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView
+from django.views.generic.edit import DeleteView
 
 from . import forms, models
 
@@ -126,3 +128,30 @@ class DiscussionSubscribe(FormView):
 
     def get_success_url(self):
         return self.discussion.get_absolute_url()
+
+
+class CommentDelete(DeleteView):
+    """
+    Deletes a particular comment after confirming with an 'Are you sure?' page.
+
+    Rather than fully deleting the comment, set its state to DELETED so it continues to
+    exist but displays differently.
+    """
+    model = models.Comment
+    template_name = 'groups/comment_delete.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """Disallow access to any user other than admins or the comment creator."""
+        self.comment = self.get_object()
+        if not self.comment.may_be_deleted(request.user):
+            message = 'A user may only delete their own comments.'
+            return HttpResponseForbidden(message)
+
+        return super(CommentDelete, self).dispatch(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        self.comment.delete_state()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return self.comment.get_absolute_url()
