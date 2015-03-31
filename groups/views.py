@@ -58,7 +58,7 @@ class DiscussionCreate(FormView):
             name=form.cleaned_data['name'],
         )
         discussion.subscribers.add(user)
-        models.Comment.objects.create(
+        models.TextComment.objects.create(
             body=form.cleaned_data['comment'],
             discussion=discussion,
             user=user,
@@ -69,7 +69,7 @@ class DiscussionCreate(FormView):
 
 class DiscussionThread(CreateView):
     """Allow a user to read and comment on a Discussion."""
-    model = models.Comment
+    model = models.BaseComment
     form_class = forms.AddComment
     subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
@@ -144,7 +144,7 @@ class CommentDelete(DeleteView):
     Rather than fully deleting the comment, set its state to DELETED so it continues to
     exist but displays differently.
     """
-    model = models.Comment
+    model = models.BaseComment
     template_name = 'groups/comment_delete.html'
 
     def dispatch(self, request, *args, **kwargs):

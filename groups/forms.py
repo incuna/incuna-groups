@@ -21,7 +21,7 @@ class AddComment(forms.ModelForm):
 
     class Meta:
         fields = ('body',)
-        model = models.Comment
+        model = models.TextComment
 
 
 class DiscussionCreate(forms.Form):

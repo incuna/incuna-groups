@@ -7,7 +7,7 @@ from .. import forms, models
 
 class TestAddCommentForm(Python2AssertMixin, RequestTestCase):
     form = forms.AddComment
-    model = models.Comment
+    model = models.TextComment
 
     def test_form_fields(self):
         expected = ['body']

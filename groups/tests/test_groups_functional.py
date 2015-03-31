@@ -40,7 +40,7 @@ class TestDiscussionThread(RenderedContentTestCase):
     def test_discussion_display(self):
         comment_body = 'I am a comment and proud of it!'
         discussion = factories.DiscussionFactory.create()
-        comment = factories.CommentFactory.create(
+        comment = factories.TextCommentFactory.create(
             body=comment_body,
             discussion=discussion
         )

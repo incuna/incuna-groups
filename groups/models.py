@@ -79,7 +79,7 @@ class Discussion(models.Model):
         return self.comments.count()
 
 
-class Comment(PolymorphicModel):
+class BaseComment(PolymorphicModel):
     """A model for a comment in a discussion thread."""
     STATE_OK = 'ok'
     STATE_DELETED = 'deleted'
@@ -88,7 +88,6 @@ class Comment(PolymorphicModel):
         (STATE_DELETED, 'Deleted'),
     )
 
-    body = models.TextField()
     discussion = models.ForeignKey('groups.Discussion', related_name='comments')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='comments')
     date_created = models.DateTimeField(default=timezone.now)
@@ -137,3 +136,10 @@ class Comment(PolymorphicModel):
 
     def is_deleted(self):
         return self.state == self.STATE_DELETED
+
+
+class TextComment(BaseComment):
+    body = models.TextField()
+
+    class Meta(BaseComment.Meta):
+        pass
