@@ -2,6 +2,7 @@ Upcoming
 ------
 
 * Add permalinks to comments.
+* Comments can now be deleted by the users that made them or admin users.
 
 
 v0.2.0
