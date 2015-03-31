@@ -103,6 +103,19 @@ class Comment(models.Model):
         url = reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
         return url + self.get_pagejump()
 
+    def may_be_deleted(self, user):
+        """Return true if the user is allowed to delete this comment, false otherwise."""
+        if self.is_deleted():
+            return False
+
+        if user.is_superuser or user.is_staff:
+            return True
+
+        if user.pk == self.user.pk:
+            return True
+
+        return False
+
     def delete_state(self):
         """
         Cause this comment to show as deleted.

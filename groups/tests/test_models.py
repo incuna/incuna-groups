@@ -111,6 +111,25 @@ class TestComment(Python2AssertMixin, TestCase):
         expected = '/groups/discussions/{}/#c{}'.format(comment.discussion.pk, comment.pk)
         self.assertEqual(comment.get_absolute_url(), expected)
 
+    def test_may_be_deleted_comment_user(self):
+        comment = factories.CommentFactory.create()
+        self.assertTrue(comment.may_be_deleted(comment.user))
+
+    def test_may_be_deleted_admin(self):
+        comment = factories.CommentFactory.create()
+        admin = factories.AdminFactory.create()
+        self.assertTrue(comment.may_be_deleted(admin))
+
+    def test_may_be_deleted_other_user(self):
+        comment = factories.CommentFactory.create()
+        user = factories.UserFactory.create()
+        self.assertFalse(comment.may_be_deleted(user))
+
+    def test_may_be_deleted_already_deleted(self):
+        comment = factories.CommentFactory.create()
+        comment.delete_state()
+        self.assertFalse(comment.may_be_deleted(comment.user))
+
     def test_delete_state(self):
         comment = factories.CommentFactory.create()
         self.assertEqual(comment.state, comment.STATE_OK)
