@@ -47,8 +47,8 @@ class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
 
     def test_get(self):
         discussion = factories.DiscussionFactory.create()
-        comment = factories.CommentFactory.create(discussion=discussion)
-        factories.CommentFactory.create()
+        comment = factories.TextCommentFactory.create(discussion=discussion)
+        factories.TextCommentFactory.create()
 
         request = self.create_request()
         view = self.view_class.as_view()
@@ -60,11 +60,11 @@ class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
 
     def test_sorting(self):
         discussion = factories.DiscussionFactory.create()
-        newer_comment = factories.CommentFactory.create(
+        newer_comment = factories.TextCommentFactory.create(
             discussion=discussion,
             date_created=self.make_datetime(2014, 1, 3)
         )
-        older_comment = factories.CommentFactory.create(
+        older_comment = factories.TextCommentFactory.create(
             discussion=discussion,
             date_created=self.make_datetime(2014, 1, 1)
         )
@@ -91,7 +91,7 @@ class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
         view(request, pk=discussion.pk)
 
         # Assert that one comment was created with the appropriate properties.
-        created_comment = models.Comment.objects.get(discussion=discussion)
+        created_comment = models.TextComment.objects.get(discussion=discussion)
         self.assertEqual(created_comment.body, data['body'])
         self.assertEqual(created_comment.discussion, discussion)
         self.assertEqual(created_comment.user, user)
@@ -173,7 +173,7 @@ class TestCommentDelete(RequestTestCase):
     view_class = views.CommentDelete
 
     def setUp(self):
-        self.comment = factories.CommentFactory.create()
+        self.comment = factories.TextCommentFactory.create()
         self.request = self.create_request(user=self.comment.user)
 
     def test_get(self):
@@ -202,7 +202,7 @@ class TestCommentDelete(RequestTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], self.comment.get_absolute_url())
 
-        updated_comment = models.Comment.objects.get(pk=self.comment.pk)
+        updated_comment = models.TextComment.objects.get(pk=self.comment.pk)
         self.assertTrue(updated_comment.is_deleted())
 
     def test_post_forbidden(self):

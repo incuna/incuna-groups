@@ -42,10 +42,10 @@ class DiscussionFactory(factory.DjangoModelFactory):
         model = models.Discussion
 
 
-class CommentFactory(factory.DjangoModelFactory):
+class TextCommentFactory(factory.DjangoModelFactory):
     body = factory.Sequence('Comment {}'.format)
     discussion = factory.SubFactory(DiscussionFactory)
     user = factory.SubFactory(UserFactory)
 
     class Meta:
-        model = models.Comment
+        model = models.TextComment
