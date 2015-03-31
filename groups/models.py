@@ -3,22 +3,29 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
 
+from .utils import ChainedQuerySetManager
+
 
 class DiscussionManager(models.Manager):
     def for_group_pk(self, pk):
         return self.get_queryset().filter(group_id=pk)
 
 
-class CommentManager(models.Manager):
+class CommentQuerySet(models.query.QuerySet):
     def for_discussion_pk(self, pk):
-        return self.get_queryset().filter(discussion_id=pk)
+        return self.filter(discussion_id=pk)
 
     def with_user_may_delete(self, user):
-        queryset = self.get_queryset()
-        for comment in queryset:
+        """Return a list to avoid removing the added variable with further filters."""
+        comments = list(self)
+        for comment in comments:
             comment.user_may_delete = comment.may_be_deleted(user)
 
-        return queryset
+        return comments
+
+
+class CommentManager(ChainedQuerySetManager):
+    queryset_class = CommentQuerySet
 
 
 class Group(models.Model):
