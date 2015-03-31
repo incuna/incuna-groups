@@ -16,7 +16,11 @@ class CommentQuerySet(models.query.QuerySet):
         return self.filter(discussion_id=pk)
 
     def with_user_may_delete(self, user):
-        """Return a list to avoid removing the added variable with further filters."""
+        """
+        Return a list to avoid removing the added variable with further filters.
+
+        Can still be chained onto the end of other queryset operations.
+        """
         comments = list(self)
         for comment in comments:
             comment.user_may_delete = comment.may_be_deleted(user)
