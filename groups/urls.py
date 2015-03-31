@@ -29,4 +29,11 @@ urlpatterns = [
             name='discussion-subscribe',
         ),
     ])),
+    url(r'^comments/(?P<pk>\d+)/', include([
+        url(
+            r'^delete/$',
+            views.CommentDelete.as_view(),
+            name='comment-delete',
+        ),
+    ])),
 ]

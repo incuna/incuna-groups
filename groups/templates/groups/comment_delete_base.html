@@ -1,0 +1,27 @@
+{% extends "groups/base.html" %}
+
+{% block groups_title %}Delete Comment{% endblock groups_title %}
+
+{% block groups_subtitle %}
+    <h2>Delete Comment</h2>
+{% endblock groups_subtitle %}
+
+{% block back_link %}
+    <p><a href="{{ object.get_absolute_url }}">Back to discussion</a></p>
+{% endblock back_link %}
+
+{% block groups_main_content %}
+    <p>Are you sure you want to delete this comment?</p>
+    <ul>
+        <li>
+            {{ comment.user }} wrote at {{ comment.date_created }}:
+        </li>
+        <li>{{ comment.body }}</li>
+    </ul>
+
+    <form action="{% url 'comment-delete' pk=object.pk %}" method="post">
+        {% csrf_token %}
+        <input type="submit" name="delete" value="Yes, delete this comment">
+        <p><a href="{{ object.get_absolute_url }}">No, don't delete this comment</a></p>
+    </form>
+{% endblock groups_main_content %}
