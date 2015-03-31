@@ -103,6 +103,9 @@ class TestComment(Python2AssertMixin, TestCase):
             'user_id',
             'date_created',
             'state',
+
+            'polymorphic_ctype',
+            'polymorphic_ctype_id',
         ])
         self.assertCountEqual(fields, expected)
 

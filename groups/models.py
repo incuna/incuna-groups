@@ -2,34 +2,25 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
-
-from .utils import ChainedQuerySetManager
+from polymorphic import PolymorphicManager, PolymorphicModel
 
 
 class DiscussionManager(models.Manager):
     def for_group_pk(self, pk):
-        return self.get_queryset().filter(group_id=pk)
+        return self.filter(group_id=pk)
 
 
-class CommentQuerySet(models.query.QuerySet):
+class CommentManager(PolymorphicManager):
     def for_discussion_pk(self, pk):
         return self.filter(discussion_id=pk)
 
     def with_user_may_delete(self, user):
-        """
-        Return a list to avoid removing the added variable with further filters.
-
-        Can still be chained onto the end of other queryset operations.
-        """
-        comments = list(self)
+        """Return a list to avoid removing the added variable with further filters."""
+        comments = list(self.all())
         for comment in comments:
             comment.user_may_delete = comment.may_be_deleted(user)
 
         return comments
-
-
-class CommentManager(ChainedQuerySetManager):
-    queryset_class = CommentQuerySet
 
 
 class Group(models.Model):
@@ -88,7 +79,7 @@ class Discussion(models.Model):
         return self.comments.count()
 
 
-class Comment(models.Model):
+class Comment(PolymorphicModel):
     """A model for a comment in a discussion thread."""
     STATE_OK = 'ok'
     STATE_DELETED = 'deleted'
