@@ -79,8 +79,14 @@ class DiscussionThread(CreateView):
         return super(DiscussionThread, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        """Display the comments attached to a given discussion, newest at the bottom."""
-        return self.discussion.comments.all()
+        """
+        Display the comments attached to a given discussion, newest at the bottom.
+
+        Use the CommentManager's with_user_may_delete method to annotate each comment
+        with a value denoting if it can be deleted by the current user. This allows us
+        to conditionally display the delete link in the template.
+        """
+        return self.discussion.comments.with_user_may_delete(self.request.user)
 
     def get_context_data(self, *args, **kwargs):
         """Attach the discussion and its existing comments to the context."""

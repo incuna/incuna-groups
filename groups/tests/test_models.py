@@ -19,13 +19,23 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
 
 class TestCommentManager(Python2AssertMixin, TestCase):
-    def test_for_group_pk(self):
+    def test_for_discussion_pk(self):
         discussion = factories.DiscussionFactory.create()
         comment = factories.CommentFactory.create(discussion=discussion)
         factories.CommentFactory.create()
 
         results = models.Comment.objects.for_discussion_pk(discussion.pk)
         self.assertCountEqual([comment], results)
+
+    def test_with_user_may_delete(self):
+        comment_one = factories.CommentFactory.create()
+        comment_two = factories.CommentFactory.create()
+
+        results = models.Comment.objects.with_user_may_delete(comment_one.user)
+        self.assertCountEqual([comment_one, comment_two], results)
+
+        may_delete_values = [comment.user_may_delete for comment in results]
+        self.assertCountEqual([True, False], may_delete_values)
 
 
 class TestGroup(Python2AssertMixin, TestCase):

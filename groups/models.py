@@ -13,6 +13,13 @@ class CommentManager(models.Manager):
     def for_discussion_pk(self, pk):
         return self.get_queryset().filter(discussion_id=pk)
 
+    def with_user_may_delete(self, user):
+        queryset = self.get_queryset()
+        for comment in queryset:
+            comment.user_may_delete = comment.may_be_deleted(user)
+
+        return queryset
+
 
 class Group(models.Model):
     """
