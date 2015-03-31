@@ -1,5 +1,6 @@
+from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView
 from django.views.generic.edit import DeleteView
@@ -147,11 +148,17 @@ class CommentDelete(DeleteView):
     template_name = 'groups/comment_delete.html'
 
     def dispatch(self, request, *args, **kwargs):
-        """Disallow access to any user other than admins or the comment creator."""
+        """
+        Disallow access to any user other than admins or the comment creator.
+
+        On unauthorised access, kick the user back to the discussion they came from with
+        a Django message displayed.  Don't scroll down to the comment, otherwise they
+        might not see the message.
+        """
         self.comment = self.get_object()
         if not self.comment.may_be_deleted(request.user):
-            message = 'You do not have permission to delete this comment.'
-            return HttpResponseForbidden(message)
+            messages.error(request, 'You do not have permission to delete this comment.')
+            return HttpResponseRedirect(self.comment.discussion.get_absolute_url())
 
         return super(CommentDelete, self).dispatch(request, *args, **kwargs)
 

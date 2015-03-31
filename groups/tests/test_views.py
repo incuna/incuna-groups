@@ -183,10 +183,16 @@ class TestCommentDelete(RequestTestCase):
         self.assertEqual(response.context_data['object'], self.comment)
 
     def test_get_forbidden(self):
-        """A user who isn't allowed to delete the comment sees a 403."""
+        """A user who isn't allowed to delete the comment sees an error message."""
         view = self.view_class.as_view()
-        response = view(self.create_request(), pk=self.comment.pk)
-        self.assertEqual(response.status_code, 403)
+        request = self.create_request()
+        response = view(request, pk=self.comment.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], self.comment.discussion.get_absolute_url())
+        self.assertEqual(
+            'You do not have permission to delete this comment.',
+            request._messages.store[0]
+        )
 
     def test_post(self):
         """POSTing to this endpoint deletes the comment."""
@@ -200,10 +206,16 @@ class TestCommentDelete(RequestTestCase):
         self.assertTrue(updated_comment.is_deleted())
 
     def test_post_forbidden(self):
-        """A user who isn't allowed to delete the comment sees a 403."""
+        """A user who isn't allowed to delete the comment sees an error message."""
         view = self.view_class.as_view()
-        response = view(self.create_request('post'), pk=self.comment.pk)
-        self.assertEqual(response.status_code, 403)
+        request = self.create_request('post')
+        response = view(request, pk=self.comment.pk)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], self.comment.discussion.get_absolute_url())
+        self.assertEqual(
+            'You do not have permission to delete this comment.',
+            request._messages.store[0]
+        )
 
     def test_delete(self):
         view_obj = self.view_class(request=self.request, kwargs={'pk': self.comment.pk})
