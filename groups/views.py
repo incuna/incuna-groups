@@ -150,7 +150,7 @@ class CommentDelete(DeleteView):
         """Disallow access to any user other than admins or the comment creator."""
         self.comment = self.get_object()
         if not self.comment.may_be_deleted(request.user):
-            message = 'A user may only delete their own comments.'
+            message = 'You do not have permission to delete this comment.'
             return HttpResponseForbidden(message)
 
         return super(CommentDelete, self).dispatch(request, *args, **kwargs)
