@@ -19,13 +19,23 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
 
 class TestCommentManager(Python2AssertMixin, TestCase):
-    def test_for_group_pk(self):
+    def test_for_discussion_pk(self):
         discussion = factories.DiscussionFactory.create()
         comment = factories.CommentFactory.create(discussion=discussion)
         factories.CommentFactory.create()
 
         results = models.Comment.objects.for_discussion_pk(discussion.pk)
         self.assertCountEqual([comment], results)
+
+    def test_with_user_may_delete(self):
+        comment_one = factories.CommentFactory.create()
+        comment_two = factories.CommentFactory.create()
+
+        results = models.Comment.objects.with_user_may_delete(comment_one.user)
+        self.assertCountEqual([comment_one, comment_two], results)
+
+        may_delete_values = [comment.user_may_delete for comment in results]
+        self.assertCountEqual([True, False], may_delete_values)
 
 
 class TestGroup(Python2AssertMixin, TestCase):
@@ -92,6 +102,7 @@ class TestComment(Python2AssertMixin, TestCase):
             'user',
             'user_id',
             'date_created',
+            'state',
         ])
         self.assertCountEqual(fields, expected)
 
@@ -109,3 +120,34 @@ class TestComment(Python2AssertMixin, TestCase):
         comment = factories.CommentFactory.create()
         expected = '/groups/discussions/{}/#c{}'.format(comment.discussion.pk, comment.pk)
         self.assertEqual(comment.get_absolute_url(), expected)
+
+    def test_may_be_deleted_comment_user(self):
+        comment = factories.CommentFactory.create()
+        self.assertTrue(comment.may_be_deleted(comment.user))
+
+    def test_may_be_deleted_admin(self):
+        comment = factories.CommentFactory.create()
+        admin = factories.AdminFactory.create()
+        self.assertTrue(comment.may_be_deleted(admin))
+
+    def test_may_be_deleted_other_user(self):
+        comment = factories.CommentFactory.create()
+        user = factories.UserFactory.create()
+        self.assertFalse(comment.may_be_deleted(user))
+
+    def test_may_be_deleted_already_deleted(self):
+        comment = factories.CommentFactory.create()
+        comment.delete_state()
+        self.assertFalse(comment.may_be_deleted(comment.user))
+
+    def test_delete_state(self):
+        comment = factories.CommentFactory.create()
+        self.assertEqual(comment.state, comment.STATE_OK)
+        comment.delete_state()
+        self.assertEqual(comment.state, comment.STATE_DELETED)
+
+    def test_is_deleted(self):
+        comment = factories.CommentFactory.create()
+        self.assertFalse(comment.is_deleted())
+        comment.delete_state()
+        self.assertTrue(comment.is_deleted())

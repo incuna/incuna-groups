@@ -3,15 +3,33 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
 
+from .utils import ChainedQuerySetManager
+
 
 class DiscussionManager(models.Manager):
     def for_group_pk(self, pk):
         return self.get_queryset().filter(group_id=pk)
 
 
-class CommentManager(models.Manager):
+class CommentQuerySet(models.query.QuerySet):
     def for_discussion_pk(self, pk):
-        return self.get_queryset().filter(discussion_id=pk)
+        return self.filter(discussion_id=pk)
+
+    def with_user_may_delete(self, user):
+        """
+        Return a list to avoid removing the added variable with further filters.
+
+        Can still be chained onto the end of other queryset operations.
+        """
+        comments = list(self)
+        for comment in comments:
+            comment.user_may_delete = comment.may_be_deleted(user)
+
+        return comments
+
+
+class CommentManager(ChainedQuerySetManager):
+    queryset_class = CommentQuerySet
 
 
 class Group(models.Model):
@@ -72,10 +90,18 @@ class Discussion(models.Model):
 
 class Comment(models.Model):
     """A model for a comment in a discussion thread."""
+    STATE_OK = 'ok'
+    STATE_DELETED = 'deleted'
+    STATE_CHOICES = (
+        (STATE_OK, 'OK'),
+        (STATE_DELETED, 'Deleted'),
+    )
+
     body = models.TextField()
     discussion = models.ForeignKey('groups.Discussion', related_name='comments')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='comments')
     date_created = models.DateTimeField(default=timezone.now)
+    state = models.CharField(max_length=255, choices=STATE_CHOICES, default=STATE_OK)
 
     objects = CommentManager()
 
@@ -94,3 +120,29 @@ class Comment(models.Model):
         """Return a permalink that'll scroll to this comment on the page."""
         url = reverse('discussion-thread', kwargs={'pk': self.discussion.pk})
         return url + self.get_pagejump()
+
+    def may_be_deleted(self, user):
+        """Return true if the user is allowed to delete this comment, false otherwise."""
+        if self.is_deleted():
+            return False
+
+        if user.is_superuser or user.is_staff:
+            return True
+
+        if user.pk == self.user.pk:
+            return True
+
+        return False
+
+    def delete_state(self):
+        """
+        Cause this comment to show as deleted.
+
+        Named so as not to conflict with the model's built-in delete() method, which
+        removes it from the database.
+        """
+        self.state = self.STATE_DELETED
+        self.save()
+
+    def is_deleted(self):
+        return self.state == self.STATE_DELETED

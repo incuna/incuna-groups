@@ -44,3 +44,11 @@ class TestGroupUrls(URLTestCase):
             'discussion-subscribe',
             url_kwargs={'pk': self.pk}
         )
+
+    def test_comment_delete(self):
+        self.assert_url_matches_view(
+            views.CommentDelete,
+            '/groups/comments/{}/delete/'.format(self.pk),
+            'comment-delete',
+            url_kwargs={'pk': self.pk}
+        )
