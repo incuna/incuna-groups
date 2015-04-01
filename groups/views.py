@@ -70,7 +70,7 @@ class DiscussionCreate(FormView):
 class DiscussionThread(CreateView):
     """Allow a user to read and comment on a Discussion."""
     model = models.BaseComment
-    form_class = forms.AddComment
+    form_class = forms.AddTextComment
     subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
 

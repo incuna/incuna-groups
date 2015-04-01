@@ -7,21 +7,47 @@ from django.core.urlresolvers import reverse_lazy
 from . import models
 
 
-class AddComment(forms.ModelForm):
-    helper = FormHelper()
-    helper.form_class = 'form-horizontal'
-    helper.label_class = 'col-lg-2'
-    helper.field_class = 'col-lg-8'
-    helper.layout = Layout(
-        'body',
-        FormActions(
-            Submit('comment-submit', 'Post comment'),
-        ),
-    )
+class BaseAddCommentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(BaseAddCommentForm, self).__init__(*args, **kwargs)
+        self.helper = self.build_helper()
+
+    def build_helper(self):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            'body',
+            FormActions(
+                Submit('comment-submit', 'Post comment'),
+            ),
+        )
+        return helper
 
     class Meta:
         fields = ('body',)
+
+
+class AddTextComment(BaseAddCommentForm):
+    class Meta(BaseAddCommentForm.Meta):
         model = models.TextComment
+
+
+class AddFileComment(BaseAddCommentForm):
+    def build_helper(self):
+        helper = super(AddFileComment, self).build_helper()
+        helper.layout = Layout(
+            'file',
+            FormActions(
+                Submit('comment-submit', 'Upload this file'),
+            ),
+        )
+        return helper
+
+    class Meta(BaseAddCommentForm.Meta):
+        fields = ('file',)
+        model = models.FileComment
 
 
 class DiscussionCreate(forms.Form):

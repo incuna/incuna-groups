@@ -5,8 +5,8 @@ from .utils import RequestTestCase
 from .. import forms, models
 
 
-class TestAddCommentForm(Python2AssertMixin, RequestTestCase):
-    form = forms.AddComment
+class TestAddTextComment(Python2AssertMixin, RequestTestCase):
+    form = forms.AddTextComment
     model = models.TextComment
 
     def test_form_fields(self):
@@ -24,6 +24,28 @@ class TestAddCommentForm(Python2AssertMixin, RequestTestCase):
         form = self.form(data={})
         self.assertFalse(form.is_valid())
         self.assertIn('body', form.errors)
+
+
+class TestAddFileComment(Python2AssertMixin, RequestTestCase):
+    form = forms.AddFileComment
+    model = models.FileComment
+
+    def test_form_fields(self):
+        expected = ['file']
+        fields = self.form.base_fields.keys()
+        self.assertCountEqual(fields, expected)
+
+    def test_form_valid(self):
+        file = factories.FileCommentFactory.create().file.file
+        data = {'file': file}
+
+        form = self.form(files=data)
+        self.assertTrue(form.is_valid(), msg=form.errors)
+
+    def test_form_not_valid(self):
+        form = self.form(data={})
+        self.assertFalse(form.is_valid())
+        self.assertIn('file', form.errors)
 
 
 class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
