@@ -106,6 +106,7 @@ class TestBaseComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype',
             'polymorphic_ctype_id',
             'textcomment',
+            'filecomment',
         ])
         self.assertCountEqual(fields, expected)
 
@@ -162,6 +163,27 @@ class TestTextComment(Python2AssertMixin, TestCase):
         expected = wipe_id_fields_on_django_lt_17([
             'id',
             'body',
+            'discussion',
+            'discussion_id',
+            'user',
+            'user_id',
+            'date_created',
+            'state',
+
+            'polymorphic_ctype',
+            'polymorphic_ctype_id',
+            'basecomment_ptr',
+            'basecomment_ptr_id',
+        ])
+        self.assertCountEqual(fields, expected)
+
+
+class TestFileComment(Python2AssertMixin, TestCase):
+    def test_fields(self):
+        fields = models.FileComment._meta.get_all_field_names()
+        expected = wipe_id_fields_on_django_lt_17([
+            'id',
+            'file',
             'discussion',
             'discussion_id',
             'user',

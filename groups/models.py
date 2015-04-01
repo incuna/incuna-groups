@@ -143,3 +143,10 @@ class TextComment(BaseComment):
 
     class Meta(BaseComment.Meta):
         pass
+
+
+class FileComment(BaseComment):
+    file = models.FileField()
+
+    class Meta(BaseComment.Meta):
+        pass
