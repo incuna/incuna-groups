@@ -141,12 +141,6 @@ class BaseComment(PolymorphicModel):
 class TextComment(BaseComment):
     body = models.TextField()
 
-    class Meta(BaseComment.Meta):
-        pass
-
 
 class FileComment(BaseComment):
     file = models.FileField(upload_to='groups/file_comments')
-
-    class Meta(BaseComment.Meta):
-        pass

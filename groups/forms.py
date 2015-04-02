@@ -45,7 +45,7 @@ class AddFileComment(BaseAddCommentForm):
         )
         return helper
 
-    class Meta(BaseAddCommentForm.Meta):
+    class Meta:
         fields = ('file',)
         model = models.FileComment
 
