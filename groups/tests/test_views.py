@@ -1,5 +1,9 @@
 import datetime
-from unittest import mock
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 import pytz
 from django.core.urlresolvers import reverse
