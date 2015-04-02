@@ -41,10 +41,7 @@ class TestGroupDetail(RequestTestCase):
 
 
 class TestCommentPostView(Python2AssertMixin, RequestTestCase):
-    class PostViewSubclass(views.CommentPostView):
-        model = models.BaseComment
-
-    view_class = PostViewSubclass
+    view_class = views.CommentPostView
 
     def setUp(self):
         """Instantiate a minimal CommentPostView object."""

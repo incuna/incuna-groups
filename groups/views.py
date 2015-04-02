@@ -68,7 +68,14 @@ class DiscussionCreate(FormView):
 
 
 class CommentPostView(CreateView):
-    """Base class for views that post a comment to a particular discussion."""
+    """
+    Base class for views that post a comment to a particular discussion.
+
+    Must be initialised with form_class and template_name attributes, as required by
+    the superclass, CreateView.
+    """
+    model = models.BaseComment
+
     def dispatch(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
         self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
@@ -88,7 +95,6 @@ class CommentPostView(CreateView):
 
 class DiscussionThread(CommentPostView):
     """Allow a user to read and comment on a Discussion."""
-    model = models.BaseComment
     form_class = forms.AddTextComment
     subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
@@ -116,7 +122,6 @@ class DiscussionThread(CommentPostView):
 
 class CommentUploadFile(CommentPostView):
     """Posts a file to a particular discussion."""
-    model = models.FileComment
     form_class = forms.AddFileComment
     template_name = 'groups/comment_upload_file.html'
 
