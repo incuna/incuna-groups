@@ -139,7 +139,10 @@ class BaseComment(PolymorphicModel):
 
 
 class TextComment(BaseComment):
+    """A normal comment consisting only of some text."""
     body = models.TextField()
 
-    class Meta(BaseComment.Meta):
-        pass
+
+class FileComment(BaseComment):
+    """A comment with an uploaded file. No text."""
+    file = models.FileField(upload_to='groups/file_comments')

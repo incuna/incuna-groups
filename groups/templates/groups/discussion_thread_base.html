@@ -26,7 +26,12 @@
                         {% if comment.is_deleted %}
                             (Post deleted)
                         {% else %}
-                            {{ comment.body }}
+                            {% if comment.body %}
+                                <p>{{ comment.body }}</p>
+                            {% endif %}
+                            {% if comment.file %}
+                                Attached file: <a href="{{ comment.file.url }}">{{ comment.file.name }}</a>
+                            {% endif %}
                         {% endif %}
                     </li>
                 </ul>
@@ -35,4 +40,6 @@
     </ul>
 
     {% crispy form %}
+
+    <p><a href="{% url 'comment-upload-file' pk=discussion.pk %}">Upload a file to this discussion</a></p>
 {% endblock groups_main_content %}

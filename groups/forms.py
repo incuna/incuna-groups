@@ -7,21 +7,51 @@ from django.core.urlresolvers import reverse_lazy
 from . import models
 
 
-class AddComment(forms.ModelForm):
-    helper = FormHelper()
-    helper.form_class = 'form-horizontal'
-    helper.label_class = 'col-lg-2'
-    helper.field_class = 'col-lg-8'
-    helper.layout = Layout(
-        'body',
-        FormActions(
-            Submit('comment-submit', 'Post comment'),
-        ),
-    )
+class BaseAddCommentForm(forms.ModelForm):
+    """A base class for forms that create models inheriting from BaseComment."""
+    def __init__(self, *args, **kwargs):
+        super(BaseAddCommentForm, self).__init__(*args, **kwargs)
+        self.helper = self.build_helper()
+
+    def build_helper(self):
+        """An overridable method that creates a crispy_forms layout helper."""
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-2'
+        helper.field_class = 'col-lg-8'
+        helper.layout = Layout(
+            'body',
+            FormActions(
+                Submit('comment-submit', 'Post comment'),
+            ),
+        )
+        return helper
 
     class Meta:
         fields = ('body',)
+
+
+class AddTextComment(BaseAddCommentForm):
+    """A form that posts TextComments."""
+    class Meta(BaseAddCommentForm.Meta):
         model = models.TextComment
+
+
+class AddFileComment(BaseAddCommentForm):
+    """A form that uploads FileComments."""
+    def build_helper(self):
+        helper = super(AddFileComment, self).build_helper()
+        helper.layout = Layout(
+            'file',
+            FormActions(
+                Submit('comment-submit', 'Upload this file'),
+            ),
+        )
+        return helper
+
+    class Meta:
+        fields = ('file',)
+        model = models.FileComment
 
 
 class DiscussionCreate(forms.Form):

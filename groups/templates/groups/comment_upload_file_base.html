@@ -1,0 +1,17 @@
+{% extends "groups/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block groups_title %}Upload a file to {{ discussion.name }}{% endblock groups_title %}
+
+{% block groups_subtitle %}
+    <h2>Upload a file to {{ discussion.name }}</h2>
+{% endblock groups_subtitle %}
+
+{% block back_link %}
+    <p><a href="{% url 'discussion-thread' pk=discussion.pk %}">Back to discussion</a></p>
+{% endblock back_link %}
+
+{% block groups_main_content %}
+    {% crispy form %}
+{% endblock groups_main_content %}

@@ -15,6 +15,7 @@ settings.configure(
     DATABASES={
         'default': dj_database_url.config(default='postgres://localhost/groups'),
     },
+    DEFAULT_FILE_STORAGE='inmemorystorage.InMemoryStorage',
     INSTALLED_APPS=(
         'groups',
         'groups.tests',

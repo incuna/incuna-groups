@@ -1,5 +1,10 @@
 import datetime
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 import pytz
 from django.core.urlresolvers import reverse
 from incuna_test_utils.compat import Python2AssertMixin
@@ -37,6 +42,37 @@ class TestGroupDetail(RequestTestCase):
         self.assertEqual(response.status_code, 200)
         detail_object = response.context_data['group']
         self.assertEqual(group, detail_object)
+
+
+class TestCommentPostView(Python2AssertMixin, RequestTestCase):
+    view_class = views.CommentPostView
+
+    def setUp(self):
+        """Instantiate a minimal CommentPostView object."""
+        self.discussion = factories.DiscussionFactory.create()
+        self.request = self.create_request()
+        self.view_obj = self.view_class(
+            request=self.request,
+            kwargs={'pk': self.discussion.pk},
+        )
+
+        self.view_obj.dispatch(self.request)
+
+    def test_dispatch(self):
+        """After dispatch (called during setUp) the discussion is attached to the view."""
+        self.assertEqual(self.view_obj.discussion, self.discussion)
+
+    def test_includes_discussion(self):
+        """Assert that the discussion is picked up and output."""
+        context_data = self.view_obj.get_context_data()
+        self.assertEqual(context_data['discussion'], self.discussion)
+
+    def test_form_valid(self):
+        """Assert that the request user and discussion are attached to the instance."""
+        form = mock.MagicMock(instance=mock.MagicMock())
+        self.view_obj.form_valid(form)
+        self.assertEqual(form.instance.user, self.request.user)
+        self.assertEqual(form.instance.discussion, self.discussion)
 
 
 class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
@@ -81,9 +117,7 @@ class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
         user = self.user_factory.create()
-        data = {
-            'body': 'I am a comment!'
-        }
+        data = {'body': 'I am a comment!'}
 
         # Hit the view, passing in the necessaries.
         request = self.create_request('post', user=user, data=data)
@@ -95,6 +129,37 @@ class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
         self.assertEqual(created_comment.body, data['body'])
         self.assertEqual(created_comment.discussion, discussion)
         self.assertEqual(created_comment.user, user)
+
+
+class TestCommentUploadFile(Python2AssertMixin, RequestTestCase):
+    view_class = views.CommentUploadFile
+
+    def make_datetime(self, year, month, day):
+        return datetime.datetime(year, month, day, tzinfo=pytz.utc)
+
+    def test_get(self):
+        discussion = factories.DiscussionFactory.create()
+        request = self.create_request()
+        view = self.view_class.as_view()
+
+        response = view(request, pk=discussion.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['discussion'], discussion)
+
+    def test_post(self):
+        discussion = factories.DiscussionFactory.create()
+        file = factories.FileCommentFactory.build().file.file
+        data = {'file': file}
+
+        # Hit the view, passing in the necessaries.
+        request = self.create_request('post', data=data)
+        view = self.view_class.as_view()
+        view(request, pk=discussion.pk)
+
+        # Assert that one comment was created with the appropriate properties.
+        created_comment = models.FileComment.objects.get(discussion=discussion)
+        self.assertEqual(created_comment.discussion, discussion)
+        self.assertEqual(created_comment.user, request.user)
 
 
 class TestDiscussionCreate(RequestTestCase):
