@@ -146,7 +146,7 @@ class TextComment(BaseComment):
 
 
 class FileComment(BaseComment):
-    file = models.FileField()
+    file = models.FileField(upload_to='groups/file_comments')
 
     class Meta(BaseComment.Meta):
         pass
