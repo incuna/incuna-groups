@@ -28,6 +28,11 @@ urlpatterns = [
             views.DiscussionSubscribe.as_view(),
             name='discussion-subscribe',
         ),
+        url(
+            r'^upload-file/$',
+            views.CommentUploadFile.as_view(),
+            name='comment-upload-file',
+        ),
     ])),
     url(r'^comments/(?P<pk>\d+)/', include([
         url(

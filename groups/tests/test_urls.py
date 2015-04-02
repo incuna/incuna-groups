@@ -45,6 +45,14 @@ class TestGroupUrls(URLTestCase):
             url_kwargs={'pk': self.pk}
         )
 
+    def test_comment_upload_file(self):
+        self.assert_url_matches_view(
+            views.CommentUploadFile,
+            '/groups/discussions/{}/upload-file/'.format(self.pk),
+            'comment-upload-file',
+            url_kwargs={'pk': self.pk}
+        )
+
     def test_comment_delete(self):
         self.assert_url_matches_view(
             views.CommentDelete,
