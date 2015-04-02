@@ -67,17 +67,31 @@ class DiscussionCreate(FormView):
         return super(DiscussionCreate, self).form_valid(form)
 
 
-class DiscussionThread(CreateView):
+class CommentPostView(CreateView):
+    """Base class for views that post a comment to a particular discussion."""
+    def dispatch(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
+        return super(CommentPostView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        """Attach the discussion and its existing comments to the context."""
+        context = super(CommentPostView, self).get_context_data(*args, **kwargs)
+        context['discussion'] = self.discussion
+        return context
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.discussion = self.discussion
+        return super(CommentPostView, self).form_valid(form)
+
+
+class DiscussionThread(CommentPostView):
     """Allow a user to read and comment on a Discussion."""
     model = models.BaseComment
     form_class = forms.AddTextComment
     subscribe_form_class = forms.DiscussionSubscribeForm
     template_name = 'groups/discussion_thread.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
-        return super(DiscussionThread, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         """
@@ -95,15 +109,16 @@ class DiscussionThread(CreateView):
         discussion = self.discussion
         form = self.subscribe_form_class(user=self.request.user, discussion=discussion)
         context['comments'] = self.get_queryset()
-        context['discussion'] = discussion
         context['group'] = discussion.group
         context['subscribe-form'] = form
         return context
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.discussion = self.discussion
-        return super(DiscussionThread, self).form_valid(form)
+
+class CommentUploadFile(CommentPostView):
+    """Posts a file to a particular discussion."""
+    model = models.FileComment
+    form_class = forms.AddFileComment
+    template_name = 'groups/comment_upload_file.html'
 
 
 class DiscussionSubscribe(FormView):

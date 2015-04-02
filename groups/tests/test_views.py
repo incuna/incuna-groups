@@ -1,4 +1,5 @@
 import datetime
+from unittest import mock
 
 import pytz
 from django.core.urlresolvers import reverse
@@ -37,6 +38,40 @@ class TestGroupDetail(RequestTestCase):
         self.assertEqual(response.status_code, 200)
         detail_object = response.context_data['group']
         self.assertEqual(group, detail_object)
+
+
+class TestCommentPostView(Python2AssertMixin, RequestTestCase):
+    class PostViewSubclass(views.CommentPostView):
+        model = models.BaseComment
+
+    view_class = PostViewSubclass
+
+    def setUp(self):
+        """Instantiate a minimal CommentPostView object."""
+        self.discussion = factories.DiscussionFactory.create()
+        self.request = self.create_request()
+        self.view_obj = self.view_class(
+            request=self.request,
+            kwargs={'pk': self.discussion.pk},
+        )
+
+        self.view_obj.dispatch(self.request)
+
+    def test_dispatch(self):
+        """After dispatch (called during setUp) the discussion is attached to the view."""
+        self.assertEqual(self.view_obj.discussion, self.discussion)
+
+    def test_includes_discussion(self):
+        """Assert that the discussion is picked up and output."""
+        context_data = self.view_obj.get_context_data()
+        self.assertEqual(context_data['discussion'], self.discussion)
+
+    def test_form_valid(self):
+        """Assert that the request user and discussion are attached to the instance."""
+        form = mock.MagicMock(instance=mock.MagicMock())
+        self.view_obj.form_valid(form)
+        self.assertEqual(form.instance.user, self.request.user)
+        self.assertEqual(form.instance.discussion, self.discussion)
 
 
 class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
