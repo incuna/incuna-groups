@@ -1,28 +1,8 @@
-from io import BytesIO
-
 import factory
 from django.contrib.auth import get_user_model
-from PIL import Image
+from incuna_test_utils.factories import images
 
 from .. import models
-
-
-TEST_SERVER = 'http://testserver'
-
-
-def simple_png():
-    """Create a 1x1 black png in memory."""
-    image_file = BytesIO()
-    image = Image.new('RGBA', (1, 1))
-    image.save(image_file, 'png')
-    image_file.name = 'test.png'
-    image_file.url = '{0}/{1}'.format(
-        TEST_SERVER,
-        image_file.name,
-    )
-    image_file._committed = True
-    image_file.seek(0)
-    return image_file
 
 
 class UserFactory(factory.DjangoModelFactory):
@@ -73,7 +53,7 @@ class TextCommentFactory(factory.DjangoModelFactory):
 
 
 class FileCommentFactory(factory.DjangoModelFactory):
-    file = factory.django.FileField(from_path='groups/tests/images/image.png')
+    file = images.LocalFileField()
     discussion = factory.SubFactory(DiscussionFactory)
     user = factory.SubFactory(UserFactory)
 
