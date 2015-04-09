@@ -37,9 +37,7 @@ class TestAddFileComment(Python2AssertMixin, RequestTestCase):
         self.assertCountEqual(fields, expected)
 
     def test_form_valid(self):
-        f = uploadable_file()
-        f.name = 'image.png'
-        file_data = {'file': f}
+        file_data = {'file': uploadable_file()}
 
         form = self.form(files=file_data)
         self.assertTrue(form.is_valid(), msg=form.errors)
