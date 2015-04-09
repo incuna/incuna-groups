@@ -1,4 +1,5 @@
 from incuna_test_utils.compat import Python2AssertMixin
+from incuna_test_utils.factories.images import uploadable_file
 
 from . import factories
 from .utils import RequestTestCase
@@ -36,10 +37,9 @@ class TestAddFileComment(Python2AssertMixin, RequestTestCase):
         self.assertCountEqual(fields, expected)
 
     def test_form_valid(self):
-        file = factories.FileCommentFactory.create().file.file
-        data = {'file': file}
+        file_data = {'file': uploadable_file()}
 
-        form = self.form(files=data)
+        form = self.form(files=file_data)
         self.assertTrue(form.is_valid(), msg=form.errors)
 
     def test_form_not_valid(self):
