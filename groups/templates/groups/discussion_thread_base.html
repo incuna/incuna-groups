@@ -19,7 +19,9 @@
     <ul>
         {% for comment in comments %}
             <li id="{{ comment.get_pagejump_anchor }}">
-                {% comment_render comment request %}
+                {% block comment %}
+                    {% comment_render comment request %}
+                {% endblock comment %}
             </li>
         {% endfor %}
     </ul>
