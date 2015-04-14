@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.template import loader, RequestContext
 from django.utils import timezone
 from polymorphic import PolymorphicManager, PolymorphicModel
 
@@ -123,6 +124,21 @@ class BaseComment(PolymorphicModel):
             return True
 
         return False
+
+    def get_context_data(self):
+        """Get the context data, used by `comment.render()`"""
+        return {'comment': self}
+
+    def render(self, request):
+        """
+        Render the comment in the template, used by `groups_tags.comment_render`.
+
+        Enables simple override of the comment template, also simplifying the
+        structure of `templates/groups/disucssion_thread_base.html`.
+        """
+        template = loader.get_template(self.template_name)
+        context = RequestContext(request, self.get_context_data())
+        return template.render(context)
 
     def delete_state(self):
         """
