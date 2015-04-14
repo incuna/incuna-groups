@@ -1,3 +1,8 @@
+v0.3.1
+------
+* Added `comment.render` to the `Comment` model.
+* Simplified the comment related templates.
+
 v0.3.0
 ------
 * Add permalinks to comments.
