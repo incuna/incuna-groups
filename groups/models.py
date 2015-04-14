@@ -126,7 +126,7 @@ class BaseComment(PolymorphicModel):
         return False
 
     def get_context_data(self):
-        """Get the context data, used by `comment.render()`"""
+        """Get the context data, used by `comment.render()`."""
         return {'comment': self}
 
     def render(self, request):
