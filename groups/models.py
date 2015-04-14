@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.template import loader, RequestContext
 from django.utils import timezone
 from polymorphic import PolymorphicManager, PolymorphicModel
 
@@ -124,6 +125,21 @@ class BaseComment(PolymorphicModel):
 
         return False
 
+    def get_context_data(self):
+        """Get the context data, used by `comment.render()`."""
+        return {'comment': self}
+
+    def render(self, request):
+        """
+        Render the comment in the template, used by `groups_tags.comment_render`.
+
+        Enables simple override of the comment template, also simplifying the
+        structure of `templates/groups/disucssion_thread_base.html`.
+        """
+        template = loader.get_template(self.template_name)
+        context = RequestContext(request, self.get_context_data())
+        return template.render(context)
+
     def delete_state(self):
         """
         Cause this comment to show as deleted.
@@ -141,8 +157,10 @@ class BaseComment(PolymorphicModel):
 class TextComment(BaseComment):
     """A normal comment consisting only of some text."""
     body = models.TextField()
+    template_name = 'groups/text_comment.html'
 
 
 class FileComment(BaseComment):
     """A comment with an uploaded file. No text."""
     file = models.FileField(upload_to='groups/file_comments')
+    template_name = 'groups/file_comment.html'

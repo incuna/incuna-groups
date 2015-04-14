@@ -1,0 +1,19 @@
+{% block comment_header %}
+    <li>
+        {{ comment.user }} wrote at <a href="{{ comment.get_pagejump }}">{{ comment.date_created }}</a>:
+        {% if comment.user_may_delete %}(<a href="{% url 'comment-delete' pk=comment.pk %}">delete this comment</a>){% endif %}
+    </li>
+{% endblock comment_header %}
+
+{% block comment_body %}
+    <li>
+        {% if comment.is_deleted %}
+            {% block comment_deleted %}
+                (Post deleted)
+            {% endblock comment_deleted %}
+        {% else %}
+            {% block comment_visible %}
+            {% endblock comment_visible %}
+        {% endif %}
+    </li>
+{% endblock comment_body %}
