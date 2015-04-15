@@ -28,6 +28,14 @@ class TestGroupManager(Python2AssertMixin, TestCase):
         results = models.Group.objects.users()
         self.assertCountEqual([comment.user, comment_two.user], results)
 
+    def test_users_distinct(self):
+        """Assert that Group.objects.users() contains no duplicates."""
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(user=comment.user)
+
+        results = models.Group.objects.users()
+        self.assertCountEqual([comment.user], results)
+
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
     def test_for_group_pk(self):
@@ -52,6 +60,14 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
         results = models.Discussion.objects.users()
         self.assertCountEqual([comment.user, comment_two.user], results)
+
+    def test_users_distinct(self):
+        """Assert that Discussion.objects.users() contains no duplicates."""
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(user=comment.user)
+
+        results = models.Discussion.objects.users()
+        self.assertCountEqual([comment.user], results)
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
@@ -87,6 +103,14 @@ class TestCommentManager(Python2AssertMixin, TestCase):
 
         results = models.BaseComment.objects.users()
         self.assertCountEqual([user, user_two], results)
+
+    def test_users_distinct(self):
+        """Assert that BaseComment.objects.users() contains no duplicates."""
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(user=comment.user)
+
+        results = models.BaseComment.objects.users()
+        self.assertCountEqual([comment.user], results)
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""

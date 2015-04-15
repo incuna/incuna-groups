@@ -8,17 +8,17 @@ class GroupQuerySet(models.QuerySet):
     def discussions(self):
         """All the discussions on these groups."""
         from .models import Discussion
-        return Discussion.objects.filter(group__in=self)
+        return Discussion.objects.filter(group__in=self).distinct()
 
     def comments(self):
         """All the comments posted in these groups."""
         from .models import BaseComment
-        return BaseComment.objects.filter(discussion__group__in=self)
+        return BaseComment.objects.filter(discussion__group__in=self).distinct()
 
     def users(self):
         """All the users who have ever posted in these groups."""
         User = get_user_model()
-        return User.objects.filter(comments__in=self.comments())
+        return User.objects.filter(comments__in=self.comments()).distinct()
 
 
 class DiscussionQuerySet(models.QuerySet):
@@ -30,12 +30,12 @@ class DiscussionQuerySet(models.QuerySet):
     def comments(self):
         """All the comments on these discussions."""
         from .models import BaseComment
-        return BaseComment.objects.filter(discussion__in=self)
+        return BaseComment.objects.filter(discussion__in=self).distinct()
 
     def users(self):
         """All the users who have ever posted in these discussions."""
         User = get_user_model()
-        return User.objects.filter(comments__discussion__in=self)
+        return User.objects.filter(comments__discussion__in=self).distinct()
 
 
 class CommentManagerMixin:
@@ -58,7 +58,7 @@ class CommentManagerMixin:
     def users(self):
         """All the users who, between them, posted these comments."""
         User = get_user_model()
-        return User.objects.filter(comments__in=self.all())
+        return User.objects.filter(comments__in=self.all()).distinct()
 
     def with_user_may_delete(self, user):
         """Return a list to avoid removing the added variable with further filters."""
