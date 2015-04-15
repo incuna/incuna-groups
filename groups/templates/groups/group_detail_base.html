@@ -16,10 +16,10 @@
         {% for discussion in object_list %}
             <li>
                 <ul>
+                    <li><a href="{{ discussion.get_absolute_url }}">{{ discussion.name }}</a></li>
                     <li>{{ discussion.get_total_replies }} Replies</li>
                     <li>Last Post: {{ discussion.get_latest_comment.date_created }}</li>
                     <li>Created by {{ discussion.creator }}</li>
-                    <li><a href="{{ discussion.get_absolute_url }}">{{ discussion.name }}</a></li>
                 </ul>
             </li>
         {% endfor %}
