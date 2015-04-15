@@ -1,19 +1,56 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template import loader, RequestContext
 from django.utils import timezone
-from polymorphic import PolymorphicManager, PolymorphicModel
+from polymorphic import PolymorphicManager, PolymorphicModel, PolymorphicQuerySet
 
 
-class DiscussionManager(models.Manager):
+class GroupQuerySet(models.QuerySet):
+    """A queryset for Groups allowing for smarter retrieval of related objects."""
+    def discussions(self):
+        return Discussion.objects.filter(group__in=self)
+
+    def comments(self):
+        return BaseComment.objects.filter(discussion__group__in=self)
+
+    def users(self):
+        User = get_user_model()
+        return User.objects.filter(comments__in=self.comments())
+
+
+class DiscussionQuerySet(models.QuerySet):
+    """A queryset for Discussions allowing for smarter retrieval of related objects."""
     def for_group_pk(self, pk):
         return self.filter(group_id=pk)
 
+    def comments(self):
+        return BaseComment.objects.filter(discussion__in=self)
 
-class CommentManager(PolymorphicManager):
+    def users(self):
+        User = get_user_model()
+        return User.objects.filter(comments__discussion__in=self)
+
+
+class CommentManagerMixin:
+    """
+    Provides methods suitable for use on both a queryset and a manager for BaseComments.
+
+    django-polymorphic's managers/querysets don't play well with related managers, so we
+    have to force its hand a bit.
+
+    Based on https://djangosnippets.org/snippets/2114/.
+    """
+    def for_group_pk(self, pk):
+        return self.filter(discussion__group_id=pk)
+
     def for_discussion_pk(self, pk):
         return self.filter(discussion_id=pk)
+
+    def users(self):
+        User = get_user_model()
+        return User.objects.filter(comments__in=self.all())
 
     def with_user_may_delete(self, user):
         """Return a list to avoid removing the added variable with further filters."""
@@ -22,6 +59,16 @@ class CommentManager(PolymorphicManager):
             comment.user_may_delete = comment.may_be_deleted(user)
 
         return comments
+
+
+class CommentQuerySet(PolymorphicQuerySet, CommentManagerMixin):
+    """A queryset for BaseComments allowing for smarter retrieval of related objects."""
+
+
+class CommentManager(PolymorphicManager, CommentManagerMixin):
+    """PolymorphicManager for BaseComments with custom methods."""
+    def get_queryset(self):
+        return CommentQuerySet(self.model, using=self._db)
 
 
 class Group(models.Model):
@@ -47,6 +94,8 @@ class Group(models.Model):
         related_name='private_groups_joined',
     )
 
+    objects = GroupQuerySet.as_manager()
+
     def get_absolute_url(self):
         return reverse('group-detail', kwargs={'pk': self.pk})
 
@@ -65,7 +114,7 @@ class Discussion(models.Model):
         related_name='subscribed_discussions',
     )
 
-    objects = DiscussionManager()
+    objects = DiscussionQuerySet.as_manager()
 
     class Meta:
         ordering = ['-date_created']
