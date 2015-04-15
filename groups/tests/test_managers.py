@@ -30,11 +30,10 @@ class TestGroupManager(Python2AssertMixin, TestCase):
 
     def test_users_distinct(self):
         """Assert that Group.objects.users() contains no duplicates."""
-        comment = factories.TextCommentFactory.create()
-        factories.TextCommentFactory.create(user=comment.user)
+        user = factories.UserFactory.create()
+        factories.TextCommentFactory.create_batch(2, user=user)
 
-        results = models.Group.objects.users()
-        self.assertCountEqual([comment.user], results)
+        self.assertCountEqual([user], models.Group.objects.users())
 
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
@@ -63,11 +62,10 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
     def test_users_distinct(self):
         """Assert that Discussion.objects.users() contains no duplicates."""
-        comment = factories.TextCommentFactory.create()
-        factories.TextCommentFactory.create(user=comment.user)
+        user = factories.UserFactory.create()
+        factories.TextCommentFactory.create_batch(2, user=user)
 
-        results = models.Discussion.objects.users()
-        self.assertCountEqual([comment.user], results)
+        self.assertCountEqual([user], models.Discussion.objects.users())
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
@@ -106,11 +104,10 @@ class TestCommentManager(Python2AssertMixin, TestCase):
 
     def test_users_distinct(self):
         """Assert that BaseComment.objects.users() contains no duplicates."""
-        comment = factories.TextCommentFactory.create()
-        factories.TextCommentFactory.create(user=comment.user)
+        user = factories.UserFactory.create()
+        factories.TextCommentFactory.create_batch(2, user=user)
 
-        results = models.BaseComment.objects.users()
-        self.assertCountEqual([comment.user], results)
+        self.assertCountEqual([user], models.BaseComment.objects.users())
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
