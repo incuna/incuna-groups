@@ -8,12 +8,12 @@ class GroupQuerySet(models.QuerySet):
     def discussions(self):
         """All the discussions on these groups."""
         from .models import Discussion
-        return Discussion.objects.filter(group__in=self).distinct()
+        return Discussion.objects.filter(group__in=self)
 
     def comments(self):
         """All the comments posted in these groups."""
         from .models import BaseComment
-        return BaseComment.objects.filter(discussion__group__in=self).distinct()
+        return BaseComment.objects.filter(discussion__group__in=self)
 
     def users(self):
         """All the users who have ever posted in these groups."""
@@ -30,7 +30,7 @@ class DiscussionQuerySet(models.QuerySet):
     def comments(self):
         """All the comments on these discussions."""
         from .models import BaseComment
-        return BaseComment.objects.filter(discussion__in=self).distinct()
+        return BaseComment.objects.filter(discussion__in=self)
 
     def users(self):
         """All the users who have ever posted in these discussions."""
