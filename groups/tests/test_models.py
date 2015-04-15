@@ -1,8 +1,5 @@
 from django.test import TestCase
-from incuna_test_utils.compat import (
-    Python2AssertMixin,
-    wipe_id_fields_on_django_lt_17
-)
+from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
 from .. import models
@@ -63,7 +60,7 @@ class TestGroup(Python2AssertMixin, TestCase):
 class TestDiscussion(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.Discussion._meta.get_all_field_names()
-        expected = wipe_id_fields_on_django_lt_17([
+        expected = [
             'id',
             'name',
             'group',
@@ -75,7 +72,7 @@ class TestDiscussion(Python2AssertMixin, TestCase):
 
             # From BaseComment
             'comments',
-        ])
+        ]
         self.assertCountEqual(fields, expected)
 
     def test_get_absolute_url(self):
@@ -94,7 +91,7 @@ class TestDiscussion(Python2AssertMixin, TestCase):
 class TestBaseComment(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.BaseComment._meta.get_all_field_names()
-        expected = wipe_id_fields_on_django_lt_17([
+        expected = [
             'id',
             'discussion',
             'discussion_id',
@@ -107,7 +104,7 @@ class TestBaseComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype_id',
             'textcomment',
             'filecomment',
-        ])
+        ]
         self.assertCountEqual(fields, expected)
 
     def test_get_pagejump_anchor(self):
@@ -160,7 +157,7 @@ class TestBaseComment(Python2AssertMixin, TestCase):
 class TestTextComment(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.TextComment._meta.get_all_field_names()
-        expected = wipe_id_fields_on_django_lt_17([
+        expected = [
             'id',
             'body',
             'discussion',
@@ -174,14 +171,14 @@ class TestTextComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype_id',
             'basecomment_ptr',
             'basecomment_ptr_id',
-        ])
+        ]
         self.assertCountEqual(fields, expected)
 
 
 class TestFileComment(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.FileComment._meta.get_all_field_names()
-        expected = wipe_id_fields_on_django_lt_17([
+        expected = [
             'id',
             'file',
             'discussion',
@@ -195,5 +192,5 @@ class TestFileComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype_id',
             'basecomment_ptr',
             'basecomment_ptr_id',
-        ])
+        ]
         self.assertCountEqual(fields, expected)
