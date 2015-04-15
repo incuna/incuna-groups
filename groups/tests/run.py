@@ -8,6 +8,7 @@ import django
 from colour_runner.django_runner import ColourRunnerMixin
 from django.conf import settings
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
+from django.test.runner import DiscoverRunner
 
 
 settings.configure(
@@ -44,9 +45,6 @@ try:
     django.setup()
 except AttributeError:
     pass
-
-
-from django.test.runner import DiscoverRunner  # noqa hack for DJANGO_LT_17
 
 
 class Runner(ColourRunnerMixin, DiscoverRunner):
