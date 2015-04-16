@@ -8,22 +8,22 @@ from .. import models
 class TestGroupManager(Python2AssertMixin, TestCase):
     def test_discussions(self):
         discussion = factories.DiscussionFactory.create()
-        discussion_two = factories.DiscussionFactory.create()  # Has a different group
+        discussion_two = factories.DiscussionFactory.create()
 
         results = models.Group.objects.discussions()
         self.assertCountEqual([discussion, discussion_two], results)
 
     def test_comments(self):
         comment = factories.TextCommentFactory.create()
-        comment_two = factories.TextCommentFactory.create()  # Has a different group
+        comment_two = factories.TextCommentFactory.create()
 
         results = models.Group.objects.comments()
         self.assertCountEqual([comment, comment_two], results)
 
     def test_users(self):
         comment = factories.TextCommentFactory.create()
-        comment_two = factories.TextCommentFactory.create()  # Has a different group
-        factories.UserFactory.create()  # Hasn't posted anything
+        comment_two = factories.TextCommentFactory.create()
+        factories.UserFactory.create()
 
         results = models.Group.objects.users()
         self.assertCountEqual([comment.user, comment_two.user], results)
@@ -47,15 +47,15 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
     def test_comments(self):
         comment = factories.TextCommentFactory.create()
-        comment_two = factories.TextCommentFactory.create()  # Has a different discussion
+        comment_two = factories.TextCommentFactory.create()
 
         results = models.Discussion.objects.comments()
         self.assertCountEqual([comment, comment_two], results)
 
     def test_users(self):
         comment = factories.TextCommentFactory.create()
-        comment_two = factories.TextCommentFactory.create()  # Has a different discussion
-        factories.UserFactory.create()  # Hasn't posted anything
+        comment_two = factories.TextCommentFactory.create()
+        factories.UserFactory.create()
 
         results = models.Discussion.objects.users()
         self.assertCountEqual([comment.user, comment_two.user], results)
@@ -70,7 +70,7 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
         comment = factories.TextCommentFactory.create()
-        factories.TextCommentFactory.create()  # Has a different group
+        factories.TextCommentFactory.create()
         group = comment.discussion.group
 
         results = models.Discussion.objects.for_group(group).comments()
@@ -95,7 +95,7 @@ class TestCommentManager(Python2AssertMixin, TestCase):
     def test_users(self):
         user = factories.TextCommentFactory.create().user
         user_two = factories.TextCommentFactory.create().user
-        factories.UserFactory.create()  # Hasn't posted anything
+        factories.UserFactory.create()
 
         results = models.BaseComment.objects.users()
         self.assertCountEqual([user, user_two], results)
@@ -110,7 +110,7 @@ class TestCommentManager(Python2AssertMixin, TestCase):
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
         comment = factories.TextCommentFactory.create()
-        factories.TextCommentFactory.create()  # Has a different group
+        factories.TextCommentFactory.create()
         group = comment.discussion.group
 
         results = models.BaseComment.objects.for_group(group).users()
