@@ -23,9 +23,9 @@ class GroupQuerySet(models.QuerySet):
 
 class DiscussionQuerySet(models.QuerySet):
     """A queryset for Discussions allowing for smarter retrieval of related objects."""
-    def for_group_pk(self, pk):
+    def for_group(self, group):
         """All the discussions on a particular group."""
-        return self.filter(group_id=pk)
+        return self.filter(group=group)
 
     def comments(self):
         """All the comments on these discussions."""
@@ -47,13 +47,13 @@ class CommentManagerMixin:
 
     Based on https://djangosnippets.org/snippets/2114/.
     """
-    def for_group_pk(self, pk):
+    def for_group(self, group):
         """All the comments on a particular group."""
-        return self.filter(discussion__group_id=pk)
+        return self.filter(discussion__group=group)
 
-    def for_discussion_pk(self, pk):
+    def for_discussion(self, discussion):
         """All the comments on a particular discussion."""
-        return self.filter(discussion_id=pk)
+        return self.filter(discussion=discussion)
 
     def users(self):
         """All the users who, between them, posted these comments."""

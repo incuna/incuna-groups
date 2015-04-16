@@ -37,12 +37,12 @@ class TestGroupManager(Python2AssertMixin, TestCase):
 
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
-    def test_for_group_pk(self):
+    def test_for_group(self):
         group = factories.GroupFactory.create()
         discussion = factories.DiscussionFactory.create(group=group)
         factories.DiscussionFactory.create()
 
-        results = models.Discussion.objects.for_group_pk(group.pk)
+        results = models.Discussion.objects.for_group(group)
         self.assertCountEqual([discussion], results)
 
     def test_comments(self):
@@ -71,27 +71,25 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         """Assert that chaining some of the above methods together works properly."""
         comment = factories.TextCommentFactory.create()
         factories.TextCommentFactory.create()  # Has a different group
-        pk = comment.discussion.group.pk
+        group = comment.discussion.group
 
-        results = models.Discussion.objects.for_group_pk(pk).comments()
+        results = models.Discussion.objects.for_group(group).comments()
         self.assertCountEqual([comment], results)
 
 
 class TestCommentManager(Python2AssertMixin, TestCase):
-    def test_for_group_pk(self):
+    def test_for_group(self):
         comment = factories.TextCommentFactory.create()
         factories.TextCommentFactory.create()
-        pk = comment.discussion.group.pk
 
-        results = models.BaseComment.objects.for_group_pk(pk)
+        results = models.BaseComment.objects.for_group(comment.discussion.group)
         self.assertCountEqual([comment], results)
 
-    def test_for_discussion_pk(self):
+    def test_for_discussion(self):
         comment = factories.TextCommentFactory.create()
         factories.TextCommentFactory.create()
-        pk = comment.discussion.pk
 
-        results = models.BaseComment.objects.for_discussion_pk(pk)
+        results = models.BaseComment.objects.for_discussion(comment.discussion)
         self.assertCountEqual([comment], results)
 
     def test_users(self):
@@ -113,9 +111,9 @@ class TestCommentManager(Python2AssertMixin, TestCase):
         """Assert that chaining some of the above methods together works properly."""
         comment = factories.TextCommentFactory.create()
         factories.TextCommentFactory.create()  # Has a different group
-        pk = comment.discussion.group.pk
+        group = comment.discussion.group
 
-        results = models.BaseComment.objects.for_group_pk(pk).users()
+        results = models.BaseComment.objects.for_group(group).users()
         self.assertCountEqual([comment.user], results)
 
     def test_with_user_may_delete(self):
