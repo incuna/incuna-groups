@@ -3,25 +3,9 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.template import loader, RequestContext
 from django.utils import timezone
-from polymorphic import PolymorphicManager, PolymorphicModel
+from polymorphic import PolymorphicModel
 
-
-class DiscussionManager(models.Manager):
-    def for_group_pk(self, pk):
-        return self.filter(group_id=pk)
-
-
-class CommentManager(PolymorphicManager):
-    def for_discussion_pk(self, pk):
-        return self.filter(discussion_id=pk)
-
-    def with_user_may_delete(self, user):
-        """Return a list to avoid removing the added variable with further filters."""
-        comments = list(self.all())
-        for comment in comments:
-            comment.user_may_delete = comment.may_be_deleted(user)
-
-        return comments
+from . import managers
 
 
 class Group(models.Model):
@@ -47,6 +31,8 @@ class Group(models.Model):
         related_name='private_groups_joined',
     )
 
+    objects = managers.GroupQuerySet.as_manager()
+
     def get_absolute_url(self):
         return reverse('group-detail', kwargs={'pk': self.pk})
 
@@ -65,7 +51,7 @@ class Discussion(models.Model):
         related_name='subscribed_discussions',
     )
 
-    objects = DiscussionManager()
+    objects = managers.DiscussionQuerySet.as_manager()
 
     class Meta:
         ordering = ['-date_created']
@@ -94,7 +80,7 @@ class BaseComment(PolymorphicModel):
     date_created = models.DateTimeField(default=timezone.now)
     state = models.CharField(max_length=255, choices=STATE_CHOICES, default=STATE_OK)
 
-    objects = CommentManager()
+    objects = managers.CommentManager()
 
     class Meta:
         ordering = ('date_created',)

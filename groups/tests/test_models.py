@@ -5,36 +5,6 @@ from . import factories
 from .. import models
 
 
-class TestDiscussionManager(Python2AssertMixin, TestCase):
-    def test_for_group_pk(self):
-        group = factories.GroupFactory.create()
-        discussion = factories.DiscussionFactory.create(group=group)
-        factories.DiscussionFactory.create()
-
-        results = models.Discussion.objects.for_group_pk(group.pk)
-        self.assertCountEqual([discussion], results)
-
-
-class TestCommentManager(Python2AssertMixin, TestCase):
-    def test_for_discussion_pk(self):
-        discussion = factories.DiscussionFactory.create()
-        comment = factories.TextCommentFactory.create(discussion=discussion)
-        factories.TextCommentFactory.create()
-
-        results = models.BaseComment.objects.for_discussion_pk(discussion.pk)
-        self.assertCountEqual([comment], results)
-
-    def test_with_user_may_delete(self):
-        comment_one = factories.TextCommentFactory.create()
-        comment_two = factories.TextCommentFactory.create()
-
-        results = models.BaseComment.objects.with_user_may_delete(comment_one.user)
-        self.assertCountEqual([comment_one, comment_two], results)
-
-        may_delete_values = [comment.user_may_delete for comment in results]
-        self.assertCountEqual([True, False], may_delete_values)
-
-
 class TestGroup(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.Group._meta.get_all_field_names()

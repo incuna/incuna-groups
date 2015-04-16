@@ -1,3 +1,7 @@
+Upcoming
+------
+* Added new manager methods for accessing groups, discussions, comments and users.
+
 v0.3.1
 ------
 * Added `comment.render` to the `Comment` model.
