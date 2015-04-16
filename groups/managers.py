@@ -61,7 +61,13 @@ class CommentManagerMixin:
         return User.objects.filter(comments__in=self.all()).distinct()
 
     def with_user_may_delete(self, user):
-        """Return a list to avoid removing the added variable with further filters."""
+        """
+        Return a list of comments annotated with 'user_may_delete' values.
+
+        The value denotes if the passed-in user is allowed to delete this particular
+        comment. The method returns a list instead of a QuerySet to avoid removing the
+        added variable with further filters.
+        """
         comments = list(self.all())
         for comment in comments:
             comment.user_may_delete = comment.may_be_deleted(user)
