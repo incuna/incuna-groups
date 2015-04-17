@@ -1,6 +1,17 @@
+import datetime
+
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
+
+
+DEFAULT_ACTIVE_THRESHOLD = apps.get_app_config('groups').default_active_threshold_days
+
+
+def get_threshold_date(threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+    """Return the earliest posting date a comment can have and still be recent."""
+    return datetime.date.today() - datetime.timedelta(days=threshold_days)
 
 
 class GroupQuerySet(models.QuerySet):
@@ -20,6 +31,11 @@ class GroupQuerySet(models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__in=self.comments()).distinct()
 
+    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+        """All the groups in this queryset which have recently been posted in."""
+        threshold = get_threshold_date(threshold_days)
+        return self.filter(discussions__comments__date_created__gte=threshold).distinct()
+
 
 class DiscussionQuerySet(models.QuerySet):
     """A queryset for Discussions allowing for smarter retrieval of related objects."""
@@ -36,6 +52,11 @@ class DiscussionQuerySet(models.QuerySet):
         """All the users who have ever posted in these discussions."""
         User = get_user_model()
         return User.objects.filter(comments__discussion__in=self).distinct()
+
+    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+        """All the discussions in this queryset which have recently been posted in."""
+        threshold = get_threshold_date(threshold_days)
+        return self.filter(comments__date_created__gte=threshold).distinct()
 
 
 class CommentManagerMixin:
@@ -59,6 +80,10 @@ class CommentManagerMixin:
         """All the users who, between them, posted these comments."""
         User = get_user_model()
         return User.objects.filter(comments__in=self.all()).distinct()
+
+    def recent(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+        """All the comments posted within the last `threshold_days` days."""
+        return self.filter(date_created__gte=get_threshold_date(threshold_days))
 
     def with_user_may_delete(self, user):
         """

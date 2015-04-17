@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from incuna_test_utils.compat import Python2AssertMixin
 
@@ -34,6 +36,23 @@ class TestGroupManager(Python2AssertMixin, TestCase):
         factories.TextCommentFactory.create_batch(2, user=user)
 
         self.assertCountEqual([user], models.Group.objects.users())
+
+    def test_active(self):
+        comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+
+        results = models.Group.objects.active()
+        self.assertCountEqual([comment.discussion.group], results)
+
+    def test_active_distinct(self):
+        group = factories.GroupFactory.create()
+        factories.TextCommentFactory.create_batch(
+            2,
+            date_created=datetime.date.today(),
+            discussion__group=group,
+        )
+
+        self.assertCountEqual([group], models.Group.objects.active())
 
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
@@ -76,6 +95,23 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         results = models.Discussion.objects.for_group(group).comments()
         self.assertCountEqual([comment], results)
 
+    def test_active(self):
+        comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+
+        results = models.Discussion.objects.active()
+        self.assertCountEqual([comment.discussion], results)
+
+    def test_active_distinct(self):
+        discussion = factories.DiscussionFactory.create()
+        factories.TextCommentFactory.create_batch(
+            2,
+            date_created=datetime.date.today(),
+            discussion=discussion,
+        )
+
+        self.assertCountEqual([discussion], models.Discussion.objects.active())
+
 
 class TestCommentManager(Python2AssertMixin, TestCase):
     def test_for_group(self):
@@ -106,6 +142,12 @@ class TestCommentManager(Python2AssertMixin, TestCase):
         factories.TextCommentFactory.create_batch(2, user=user)
 
         self.assertCountEqual([user], models.BaseComment.objects.users())
+
+    def test_recent(self):
+        comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+
+        self.assertCountEqual([comment], models.BaseComment.objects.recent())
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
