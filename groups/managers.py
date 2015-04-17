@@ -9,8 +9,13 @@ from polymorphic import PolymorphicManager, PolymorphicQuerySet
 DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days
 
 
+def get_threshold_delta(timedelta):
+    """Return the earliest posting *time* a comment can have and still be recent."""
+    return datetime.datetime.now() - timedelta
+
+
 def get_threshold_date(within_days=DEFAULT_WITHIN_DAYS):
-    """Return the earliest posting date a comment can have and still be recent."""
+    """Return the earliest posting *date* a comment can have and still be recent."""
     return datetime.date.today() - datetime.timedelta(days=within_days)
 
 
@@ -33,8 +38,15 @@ class GroupQuerySet(models.QuerySet):
 
     def within_days(self, days=DEFAULT_WITHIN_DAYS):
         """All the groups in this queryset posted to within the last `days` days."""
-        threshold = get_threshold_date(days)
-        return self.filter(discussions__comments__date_created__gte=threshold).distinct()
+        return self.since(get_threshold_date(days))
+
+    def within_time(self, timedelta):
+        """All the groups in this queryset posted to within the last `timedelta`."""
+        return self.since(get_threshold_delta(timedelta))
+
+    def since(self, when):
+        """All the groups in this queryset posted to since `when`."""
+        return self.filter(discussions__comments__date_created__gte=when).distinct()
 
 
 class DiscussionQuerySet(models.QuerySet):
@@ -53,10 +65,17 @@ class DiscussionQuerySet(models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__discussion__in=self).distinct()
 
-    def within_days(self, threshold_days=DEFAULT_WITHIN_DAYS):
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
         """All the discussions in this queryset posted to within the last `days` days."""
-        threshold = get_threshold_date(threshold_days)
-        return self.filter(comments__date_created__gte=threshold).distinct()
+        return self.since(get_threshold_date(days))
+
+    def within_time(self, timedelta):
+        """All the discussions in this queryset posted to within the last `timedelta`."""
+        return self.since(get_threshold_delta(timedelta))
+
+    def since(self, when):
+        """All the discussions in this queryset posted to since `when`."""
+        return self.filter(comments__date_created__gte=when).distinct()
 
 
 class CommentManagerMixin:
@@ -82,8 +101,16 @@ class CommentManagerMixin:
         return User.objects.filter(comments__in=self.all()).distinct()
 
     def within_days(self, days=DEFAULT_WITHIN_DAYS):
-        """All the comments posted within the last `days` days."""
-        return self.filter(date_created__gte=get_threshold_date(days))
+        """All the comments in this queryset posted within the last `days` days."""
+        return self.since(get_threshold_date(days))
+
+    def within_time(self, timedelta):
+        """All the comments in this queryset posted within the last `timedelta`."""
+        return self.since(get_threshold_delta(timedelta))
+
+    def since(self, when):
+        """All the comments in this queryset posted since `when`."""
+        return self.filter(date_created__gte=when).distinct()
 
     def with_user_may_delete(self, user):
         """
@@ -112,11 +139,18 @@ class CommentManager(PolymorphicManager, CommentManagerMixin):
 
 class WithinDaysUserQuerySetMixin:
     """
-    A mixin that adds a within_days() method, returning users that have recently posted.
+    A mixin that adds methods for returning users that have recently posted.
 
     Can be mixed into a Manager or a QuerySet.
     """
     def within_days(self, days=DEFAULT_WITHIN_DAYS):
-        """Return all the users that created a comment within the last `days` days."""
-        threshold = get_threshold_date(days)
-        return self.filter(comments__date_created__gte=threshold)
+        """All users that created a comment within the last `days` days."""
+        return self.since(get_threshold_date(days))
+
+    def within_time(self, timedelta):
+        """All users that created a comment within the last `timedelta`."""
+        return self.since(get_threshold_delta(timedelta))
+
+    def since(self, when):
+        """All the comments in this queryset posted since `when`."""
+        return self.filter(comments__date_created__gte=when).distinct()

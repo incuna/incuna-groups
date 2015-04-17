@@ -46,6 +46,22 @@ class TestGroupManager(Python2AssertMixin, TestCase):
         results = models.Group.objects.within_days()
         self.assertCountEqual([comment.discussion.group], results)
 
+    def test_within_time(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        delta = datetime.timedelta(hours=6)
+
+        results = models.Group.objects.within_time(delta)
+        self.assertCountEqual([comment.discussion.group], results)
+
+    def test_since(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        when = datetime.date(2000, 1, 1)
+
+        results = models.Group.objects.since(when)
+        self.assertCountEqual([comment.discussion.group], results)
+
     def test_within_days_distinct(self):
         """Assert that Group.objects.within_days() contains no duplicates."""
         group = factories.GroupFactory.create()
@@ -56,6 +72,14 @@ class TestGroupManager(Python2AssertMixin, TestCase):
         )
 
         self.assertCountEqual([group], models.Group.objects.within_days())
+
+    def test_within_time_distinct(self):
+        """Assert that Group.objects.within_time() contains no duplicates."""
+        group = factories.GroupFactory.create()
+        factories.TextCommentFactory.create_batch(2, discussion__group=group)
+        delta = datetime.timedelta(hours=6)
+
+        self.assertCountEqual([group], models.Group.objects.within_time(delta))
 
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
@@ -105,6 +129,22 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         results = models.Discussion.objects.within_days()
         self.assertCountEqual([comment.discussion], results)
 
+    def test_within_time(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        delta = datetime.timedelta(hours=6)
+
+        results = models.Discussion.objects.within_time(delta)
+        self.assertCountEqual([comment.discussion], results)
+
+    def test_since(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        when = datetime.date(2000, 1, 1)
+
+        results = models.Discussion.objects.since(when)
+        self.assertCountEqual([comment.discussion], results)
+
     def test_within_days_distinct(self):
         """Assert that Discussion.objects.within_days() contains no duplicates."""
         discussion = factories.DiscussionFactory.create()
@@ -115,6 +155,14 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         )
 
         self.assertCountEqual([discussion], models.Discussion.objects.within_days())
+
+    def test_within_time_distinct(self):
+        """Assert that Discussion.objects.within_time() contains no duplicates."""
+        discussion = factories.DiscussionFactory.create()
+        factories.TextCommentFactory.create_batch(2, discussion=discussion)
+        delta = datetime.timedelta(hours=6)
+
+        self.assertCountEqual([discussion], models.Discussion.objects.within_time(delta))
 
 
 class TestCommentManager(Python2AssertMixin, TestCase):
@@ -152,6 +200,21 @@ class TestCommentManager(Python2AssertMixin, TestCase):
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
         self.assertCountEqual([comment], models.BaseComment.objects.within_days())
+
+    def test_within_time(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        delta = datetime.timedelta(hours=6)
+
+        self.assertCountEqual([comment], models.BaseComment.objects.within_time(delta))
+
+    def test_since(self):
+        comment = factories.TextCommentFactory.create()
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+        when = datetime.date(2000, 1, 1)
+
+        results = models.BaseComment.objects.since(when)
+        self.assertCountEqual([comment], results)
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
@@ -210,12 +273,32 @@ class TestWithinDaysUserQuerySetMixin(Python2AssertMixin, TestCase):
         factories.TextCommentFactory.create(user=self.recent_user)
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
-    def test_mixin_in_manager(self):
+    def test_within_days_in_manager(self):
         """Assert that within_days() works properly when called from the manager."""
         results = self.model.objects.within_days()
         self.assertCountEqual([self.recent_user], results)
 
-    def test_mixin_in_queryset(self):
+    def test_within_days_in_queryset(self):
         """Assert that within_days() works properly when called from the queryset."""
         results = self.model.objects.all().within_days()
+        self.assertCountEqual([self.recent_user], results)
+
+    def test_within_time_in_manager(self):
+        """Assert that within_time() works properly when called from the manager."""
+        results = self.model.objects.within_time(datetime.timedelta(hours=6))
+        self.assertCountEqual([self.recent_user], results)
+
+    def test_within_time_in_queryset(self):
+        """Assert that within_time() works properly when called from the queryset."""
+        results = self.model.objects.all().within_time(datetime.timedelta(hours=6))
+        self.assertCountEqual([self.recent_user], results)
+
+    def test_since_in_manager(self):
+        """Assert that since() works properly when called from the manager."""
+        results = self.model.objects.since(datetime.date(2000, 1, 1))
+        self.assertCountEqual([self.recent_user], results)
+
+    def test_since_in_queryset(self):
+        """Assert that since() works properly when called from the queryset."""
+        results = self.model.objects.all().since(datetime.date(2000, 1, 1))
         self.assertCountEqual([self.recent_user], results)
