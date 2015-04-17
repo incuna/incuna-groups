@@ -108,3 +108,16 @@ class CommentManager(PolymorphicManager, CommentManagerMixin):
     """PolymorphicManager for BaseComments with custom methods."""
     def get_queryset(self):
         return CommentQuerySet(self.model, using=self._db)
+
+
+class ActiveUserQuerySetMixin:
+    """
+    A mixin that adds an active() method, returning users that have recently posted.
+
+    Can be mixed into a Manager or a QuerySet.  The method accepts a parameter for the
+    number of days in the past a user can have posted in order to be considered active,
+    which defaults to `default_active_threshold_days` in `GroupsConfig`.
+    """
+    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+        threshold = get_threshold_date(threshold_days)
+        return self.filter(comments__date_created__gte=threshold)

@@ -1,10 +1,12 @@
 import datetime
 
+from django.contrib.auth import get_user_model
+from django.db import models as django_models
 from django.test import TestCase
 from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
-from .. import models
+from .. import managers, models
 
 
 class TestGroupManager(Python2AssertMixin, TestCase):
@@ -45,6 +47,7 @@ class TestGroupManager(Python2AssertMixin, TestCase):
         self.assertCountEqual([comment.discussion.group], results)
 
     def test_active_distinct(self):
+        """Assert that Group.objects.active() contains no duplicates."""
         group = factories.GroupFactory.create()
         factories.TextCommentFactory.create_batch(
             2,
@@ -103,6 +106,7 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         self.assertCountEqual([comment.discussion], results)
 
     def test_active_distinct(self):
+        """Assert that Discussion.objects.active() contains no duplicates."""
         discussion = factories.DiscussionFactory.create()
         factories.TextCommentFactory.create_batch(
             2,
@@ -167,3 +171,51 @@ class TestCommentManager(Python2AssertMixin, TestCase):
 
         may_delete_values = [comment.user_may_delete for comment in results]
         self.assertCountEqual([True, False], may_delete_values)
+
+
+class TestActiveUserQuerySetMixin(Python2AssertMixin, TestCase):
+    mixin = managers.ActiveUserQuerySetMixin
+
+    def __init__(self, *args, **kwargs):
+        """
+        Declare some classes that will be used in this test.
+
+        We need a manager and a queryset that inherit from the mixin being tested,
+        and a proxy model that declares the mixed-in manager as its `objects` attribute
+        so that we can call the manager methods via ProxyModel.objects.method().
+
+        This mixin is intended for use with User models, so we'll proxy that.
+        """
+        super(TestActiveUserQuerySetMixin, self).__init__(*args, **kwargs)
+
+        class MixedInQuerySet(self.mixin, django_models.QuerySet):
+            """A basic QuerySet extending the mixin."""
+
+        class MixedInManager(self.mixin, django_models.Manager):
+            """A basic Manager extending the mixin and using MixedInQuerySet."""
+            def get_queryset(self):
+                return MixedInQuerySet(self.model, using=self._db)
+
+        class ProxyUser(get_user_model()):
+            """A proxy for the User model that adds in our manager."""
+            objects = MixedInManager()
+
+            class Meta:
+                proxy = True
+
+        self.model = ProxyUser
+
+    def setUp(self):
+        self.active_user = factories.UserFactory.create()
+        factories.TextCommentFactory.create(user=self.active_user)
+        factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
+
+    def test_mixin_in_manager(self):
+        """Assert that active() works properly when called from the manager."""
+        results = self.model.objects.active()
+        self.assertCountEqual([self.active_user], results)
+
+    def test_mixin_in_queryset(self):
+        """Assert that active() works properly when called from the queryset."""
+        results = self.model.objects.all().active()
+        self.assertCountEqual([self.active_user], results)
