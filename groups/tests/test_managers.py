@@ -39,15 +39,15 @@ class TestGroupManager(Python2AssertMixin, TestCase):
 
         self.assertCountEqual([user], models.Group.objects.users())
 
-    def test_active(self):
+    def test_within_days(self):
         comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
-        results = models.Group.objects.active()
+        results = models.Group.objects.within_days()
         self.assertCountEqual([comment.discussion.group], results)
 
-    def test_active_distinct(self):
-        """Assert that Group.objects.active() contains no duplicates."""
+    def test_within_days_distinct(self):
+        """Assert that Group.objects.within_days() contains no duplicates."""
         group = factories.GroupFactory.create()
         factories.TextCommentFactory.create_batch(
             2,
@@ -55,7 +55,7 @@ class TestGroupManager(Python2AssertMixin, TestCase):
             discussion__group=group,
         )
 
-        self.assertCountEqual([group], models.Group.objects.active())
+        self.assertCountEqual([group], models.Group.objects.within_days())
 
 
 class TestDiscussionManager(Python2AssertMixin, TestCase):
@@ -98,15 +98,15 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
         results = models.Discussion.objects.for_group(group).comments()
         self.assertCountEqual([comment], results)
 
-    def test_active(self):
+    def test_within_days(self):
         comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
-        results = models.Discussion.objects.active()
+        results = models.Discussion.objects.within_days()
         self.assertCountEqual([comment.discussion], results)
 
-    def test_active_distinct(self):
-        """Assert that Discussion.objects.active() contains no duplicates."""
+    def test_within_days_distinct(self):
+        """Assert that Discussion.objects.within_days() contains no duplicates."""
         discussion = factories.DiscussionFactory.create()
         factories.TextCommentFactory.create_batch(
             2,
@@ -114,7 +114,7 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
             discussion=discussion,
         )
 
-        self.assertCountEqual([discussion], models.Discussion.objects.active())
+        self.assertCountEqual([discussion], models.Discussion.objects.within_days())
 
 
 class TestCommentManager(Python2AssertMixin, TestCase):
@@ -147,11 +147,11 @@ class TestCommentManager(Python2AssertMixin, TestCase):
 
         self.assertCountEqual([user], models.BaseComment.objects.users())
 
-    def test_recent(self):
+    def test_within_days(self):
         comment = factories.TextCommentFactory.create(date_created=datetime.date.today())
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
-        self.assertCountEqual([comment], models.BaseComment.objects.recent())
+        self.assertCountEqual([comment], models.BaseComment.objects.within_days())
 
     def test_chaining(self):
         """Assert that chaining some of the above methods together works properly."""
@@ -173,8 +173,8 @@ class TestCommentManager(Python2AssertMixin, TestCase):
         self.assertCountEqual([True, False], may_delete_values)
 
 
-class TestActiveUserQuerySetMixin(Python2AssertMixin, TestCase):
-    mixin = managers.ActiveUserQuerySetMixin
+class TestWithinDaysUserQuerySetMixin(Python2AssertMixin, TestCase):
+    mixin = managers.WithinDaysUserQuerySetMixin
 
     def __init__(self, *args, **kwargs):
         """
@@ -186,7 +186,7 @@ class TestActiveUserQuerySetMixin(Python2AssertMixin, TestCase):
 
         This mixin is intended for use with User models, so we'll proxy that.
         """
-        super(TestActiveUserQuerySetMixin, self).__init__(*args, **kwargs)
+        super(TestWithinDaysUserQuerySetMixin, self).__init__(*args, **kwargs)
 
         class MixedInQuerySet(self.mixin, django_models.QuerySet):
             """A basic QuerySet extending the mixin."""
@@ -206,16 +206,16 @@ class TestActiveUserQuerySetMixin(Python2AssertMixin, TestCase):
         self.model = ProxyUser
 
     def setUp(self):
-        self.active_user = factories.UserFactory.create()
-        factories.TextCommentFactory.create(user=self.active_user)
+        self.recent_user = factories.UserFactory.create()
+        factories.TextCommentFactory.create(user=self.recent_user)
         factories.TextCommentFactory.create(date_created=datetime.date(1970, 1, 1))
 
     def test_mixin_in_manager(self):
-        """Assert that active() works properly when called from the manager."""
-        results = self.model.objects.active()
-        self.assertCountEqual([self.active_user], results)
+        """Assert that within_days() works properly when called from the manager."""
+        results = self.model.objects.within_days()
+        self.assertCountEqual([self.recent_user], results)
 
     def test_mixin_in_queryset(self):
-        """Assert that active() works properly when called from the queryset."""
-        results = self.model.objects.all().active()
-        self.assertCountEqual([self.active_user], results)
+        """Assert that within_days() works properly when called from the queryset."""
+        results = self.model.objects.all().within_days()
+        self.assertCountEqual([self.recent_user], results)

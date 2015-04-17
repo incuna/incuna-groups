@@ -6,11 +6,9 @@ class GroupsConfig(AppConfig):
     Configuration for `groups`.
 
     Provides:
-    * default_active_threshold_days - a user is considered not to be active if they
-      haven't made a comment within the past [this value] days, and vice versa.  A
-      discussion or group is considered to be active if it has at least one active user.
-      This setting is a default, used only when a value isn't supplied manually to the
-      various methods that return active things.
+    * default_within_days - a default parameter for the `within_days` methods on some
+      of the model managers, which return items that were posted or posted to within
+      that time period.
     """
     name = 'groups'
-    default_active_threshold_days = 7
+    default_within_days = 7

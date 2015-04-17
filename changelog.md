@@ -2,8 +2,8 @@ Upcoming
 ------
 * Added new manager methods for accessing groups, discussions, comments and users.
 * Added an `AppConfig` in apps.py for ease of configuration.
-* Added new manager methods to return active groups, discussions, and comments.
-* Added a mixin that can be added to User managers or querysets to return active users.
+* Added new manager methods to return recent groups, discussions, and comments.
+* Added a mixin that can be added to User managers or querysets to return recent users.
 
 v0.3.1
 ------

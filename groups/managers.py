@@ -6,12 +6,12 @@ from django.db import models
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 
 
-DEFAULT_ACTIVE_THRESHOLD = apps.get_app_config('groups').default_active_threshold_days
+DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days
 
 
-def get_threshold_date(threshold_days=DEFAULT_ACTIVE_THRESHOLD):
+def get_threshold_date(within_days=DEFAULT_WITHIN_DAYS):
     """Return the earliest posting date a comment can have and still be recent."""
-    return datetime.date.today() - datetime.timedelta(days=threshold_days)
+    return datetime.date.today() - datetime.timedelta(days=within_days)
 
 
 class GroupQuerySet(models.QuerySet):
@@ -31,9 +31,9 @@ class GroupQuerySet(models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__in=self.comments()).distinct()
 
-    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
-        """All the groups in this queryset which have recently been posted in."""
-        threshold = get_threshold_date(threshold_days)
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
+        """All the groups in this queryset posted to within the last `days` days."""
+        threshold = get_threshold_date(days)
         return self.filter(discussions__comments__date_created__gte=threshold).distinct()
 
 
@@ -53,8 +53,8 @@ class DiscussionQuerySet(models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__discussion__in=self).distinct()
 
-    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
-        """All the discussions in this queryset which have recently been posted in."""
+    def within_days(self, threshold_days=DEFAULT_WITHIN_DAYS):
+        """All the discussions in this queryset posted to within the last `days` days."""
         threshold = get_threshold_date(threshold_days)
         return self.filter(comments__date_created__gte=threshold).distinct()
 
@@ -81,9 +81,9 @@ class CommentManagerMixin:
         User = get_user_model()
         return User.objects.filter(comments__in=self.all()).distinct()
 
-    def recent(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
-        """All the comments posted within the last `threshold_days` days."""
-        return self.filter(date_created__gte=get_threshold_date(threshold_days))
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
+        """All the comments posted within the last `days` days."""
+        return self.filter(date_created__gte=get_threshold_date(days))
 
     def with_user_may_delete(self, user):
         """
@@ -110,14 +110,13 @@ class CommentManager(PolymorphicManager, CommentManagerMixin):
         return CommentQuerySet(self.model, using=self._db)
 
 
-class ActiveUserQuerySetMixin:
+class WithinDaysUserQuerySetMixin:
     """
-    A mixin that adds an active() method, returning users that have recently posted.
+    A mixin that adds a within_days() method, returning users that have recently posted.
 
-    Can be mixed into a Manager or a QuerySet.  The method accepts a parameter for the
-    number of days in the past a user can have posted in order to be considered active,
-    which defaults to `default_active_threshold_days` in `GroupsConfig`.
+    Can be mixed into a Manager or a QuerySet.
     """
-    def active(self, threshold_days=DEFAULT_ACTIVE_THRESHOLD):
-        threshold = get_threshold_date(threshold_days)
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
+        """Return all the users that created a comment within the last `days` days."""
+        threshold = get_threshold_date(days)
         return self.filter(comments__date_created__gte=threshold)
