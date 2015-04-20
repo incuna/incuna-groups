@@ -1,10 +1,54 @@
+import datetime
+
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
 from polymorphic import PolymorphicManager, PolymorphicQuerySet
 
 
-class GroupQuerySet(models.QuerySet):
+DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days
+
+
+class WithinDaysQuerySetMixin:
+    """
+    A mixin that adds methods for returning items that have recently been posted (to).
+
+    Can be mixed into a Manager or a QuerySet.
+
+    Requires a `since_filter` member on the inheriting class, which is the condition used
+    by the since() method. To set up the mixin for use in a `User` manager or queryset,
+    use:
+
+        since_filter = 'comments__date_created__gte'
+    """
+    @staticmethod
+    def get_threshold_delta(timedelta):
+        """Return the earliest posting *time* a comment can have and still be recent."""
+        return datetime.datetime.now() - timedelta
+
+    @staticmethod
+    def get_threshold_date(within_days=DEFAULT_WITHIN_DAYS):
+        """Return the earliest posting *date* a comment can have and still be recent."""
+        return datetime.date.today() - datetime.timedelta(days=within_days)
+
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
+        """All users that created a comment within the last `days` days."""
+        return self.since(self.get_threshold_date(days))
+
+    def within_time(self, timedelta):
+        """All users that created a comment within the last `timedelta`."""
+        return self.since(self.get_threshold_delta(timedelta))
+
+    def since(self, when):
+        """All the comments belonging to items in this queryset posted since `when`."""
+        since_filter = {self.since_filter: when}
+        return self.filter(**since_filter).distinct()
+
+
+class GroupQuerySet(WithinDaysQuerySetMixin, models.QuerySet):
     """A queryset for Groups allowing for smarter retrieval of related objects."""
+    since_filter = 'discussions__comments__date_created__gte'
+
     def discussions(self):
         """All the discussions on these groups."""
         from .models import Discussion
@@ -21,8 +65,10 @@ class GroupQuerySet(models.QuerySet):
         return User.objects.filter(comments__in=self.comments()).distinct()
 
 
-class DiscussionQuerySet(models.QuerySet):
+class DiscussionQuerySet(WithinDaysQuerySetMixin, models.QuerySet):
     """A queryset for Discussions allowing for smarter retrieval of related objects."""
+    since_filter = 'comments__date_created__gte'
+
     def for_group(self, group):
         """All the discussions on a particular group."""
         return self.filter(group=group)
@@ -38,7 +84,7 @@ class DiscussionQuerySet(models.QuerySet):
         return User.objects.filter(comments__discussion__in=self).distinct()
 
 
-class CommentManagerMixin:
+class CommentManagerMixin(WithinDaysQuerySetMixin):
     """
     Provides methods suitable for use on both a queryset and a manager for BaseComments.
 
@@ -47,6 +93,8 @@ class CommentManagerMixin:
 
     Based on https://djangosnippets.org/snippets/2114/.
     """
+    since_filter = 'date_created__gte'
+
     def for_group(self, group):
         """All the comments on a particular group."""
         return self.filter(discussion__group=group)
