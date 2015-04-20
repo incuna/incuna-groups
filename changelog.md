@@ -1,4 +1,4 @@
-Upcoming
+v0.4.0
 ------
 * Added new manager methods for accessing groups, discussions, comments and users.
 * Added an `AppConfig` in apps.py for ease of configuration.
