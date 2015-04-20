@@ -236,8 +236,8 @@ class TestCommentManager(Python2AssertMixin, TestCase):
         self.assertCountEqual([True, False], may_delete_values)
 
 
-class TestWithinDaysUserQuerySetMixin(Python2AssertMixin, TestCase):
-    mixin = managers.WithinDaysUserQuerySetMixin
+class TestWithinDaysQuerySetMixin(Python2AssertMixin, TestCase):
+    mixin = managers.WithinDaysQuerySetMixin
 
     def __init__(self, *args, **kwargs):
         """
@@ -249,13 +249,16 @@ class TestWithinDaysUserQuerySetMixin(Python2AssertMixin, TestCase):
 
         This mixin is intended for use with User models, so we'll proxy that.
         """
-        super(TestWithinDaysUserQuerySetMixin, self).__init__(*args, **kwargs)
+        super(TestWithinDaysQuerySetMixin, self).__init__(*args, **kwargs)
 
         class MixedInQuerySet(self.mixin, django_models.QuerySet):
             """A basic QuerySet extending the mixin."""
+            since_filter = 'comments__date_created__gte'
 
         class MixedInManager(self.mixin, django_models.Manager):
             """A basic Manager extending the mixin and using MixedInQuerySet."""
+            since_filter = 'comments__date_created__gte'
+
             def get_queryset(self):
                 return MixedInQuerySet(self.model, using=self._db)
 

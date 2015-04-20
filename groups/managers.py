@@ -9,17 +9,18 @@ from polymorphic import PolymorphicManager, PolymorphicQuerySet
 DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days
 
 
-class WithinDaysUserQuerySetMixin:
+class WithinDaysQuerySetMixin:
     """
     A mixin that adds methods for returning items that have recently been posted (to).
 
     Can be mixed into a Manager or a QuerySet.
 
-    By default, is intended for use with User objects.  To change this, override the
-    condition used in the `since()` method, which is a member called `since_filter`.
-    """
-    since_filter = 'comments__date_created__gte'
+    Requires a `since_filter` member on the inheriting class, which is the condition used
+    by the since() method. To set up the mixin for use in a `User` manager or queryset,
+    use:
 
+        since_filter = 'comments__date_created__gte'
+    """
     @staticmethod
     def get_threshold_delta(timedelta):
         """Return the earliest posting *time* a comment can have and still be recent."""
@@ -44,7 +45,7 @@ class WithinDaysUserQuerySetMixin:
         return self.filter(**since_filter).distinct()
 
 
-class GroupQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
+class GroupQuerySet(WithinDaysQuerySetMixin, models.QuerySet):
     """A queryset for Groups allowing for smarter retrieval of related objects."""
     since_filter = 'discussions__comments__date_created__gte'
 
@@ -64,8 +65,10 @@ class GroupQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
         return User.objects.filter(comments__in=self.comments()).distinct()
 
 
-class DiscussionQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
+class DiscussionQuerySet(WithinDaysQuerySetMixin, models.QuerySet):
     """A queryset for Discussions allowing for smarter retrieval of related objects."""
+    since_filter = 'comments__date_created__gte'
+
     def for_group(self, group):
         """All the discussions on a particular group."""
         return self.filter(group=group)
@@ -81,7 +84,7 @@ class DiscussionQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
         return User.objects.filter(comments__discussion__in=self).distinct()
 
 
-class CommentManagerMixin(WithinDaysUserQuerySetMixin):
+class CommentManagerMixin(WithinDaysQuerySetMixin):
     """
     Provides methods suitable for use on both a queryset and a manager for BaseComments.
 
