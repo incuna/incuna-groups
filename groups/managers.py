@@ -16,8 +16,10 @@ class WithinDaysUserQuerySetMixin:
     Can be mixed into a Manager or a QuerySet.
 
     By default, is intended for use with User objects.  To change this, override the
-    condition used in the `since()` method.
+    condition used in the `since()` method, which is a member called `since_filter`.
     """
+    since_filter = 'comments__date_created__gte'
+
     @staticmethod
     def get_threshold_delta(timedelta):
         """Return the earliest posting *time* a comment can have and still be recent."""
@@ -38,11 +40,14 @@ class WithinDaysUserQuerySetMixin:
 
     def since(self, when):
         """All the comments belonging to items in this queryset posted since `when`."""
-        return self.filter(comments__date_created__gte=when).distinct()
+        since_filter = {self.since_filter: when}
+        return self.filter(**since_filter).distinct()
 
 
 class GroupQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
     """A queryset for Groups allowing for smarter retrieval of related objects."""
+    since_filter = 'discussions__comments__date_created__gte'
+
     def discussions(self):
         """All the discussions on these groups."""
         from .models import Discussion
@@ -57,10 +62,6 @@ class GroupQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
         """All the users who have ever posted in these groups."""
         User = get_user_model()
         return User.objects.filter(comments__in=self.comments()).distinct()
-
-    def since(self, when):
-        """All the groups in this queryset posted to since `when`."""
-        return self.filter(discussions__comments__date_created__gte=when).distinct()
 
 
 class DiscussionQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
@@ -79,10 +80,6 @@ class DiscussionQuerySet(WithinDaysUserQuerySetMixin, models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__discussion__in=self).distinct()
 
-    def since(self, when):
-        """All the discussions in this queryset posted to since `when`."""
-        return self.filter(comments__date_created__gte=when).distinct()
-
 
 class CommentManagerMixin(WithinDaysUserQuerySetMixin):
     """
@@ -93,6 +90,8 @@ class CommentManagerMixin(WithinDaysUserQuerySetMixin):
 
     Based on https://djangosnippets.org/snippets/2114/.
     """
+    since_filter = 'date_created__gte'
+
     def for_group(self, group):
         """All the comments on a particular group."""
         return self.filter(discussion__group=group)
@@ -105,10 +104,6 @@ class CommentManagerMixin(WithinDaysUserQuerySetMixin):
         """All the users who, between them, posted these comments."""
         User = get_user_model()
         return User.objects.filter(comments__in=self.all()).distinct()
-
-    def since(self, when):
-        """All the comments in this queryset posted since `when`."""
-        return self.filter(date_created__gte=when).distinct()
 
     def with_user_may_delete(self, user):
         """
