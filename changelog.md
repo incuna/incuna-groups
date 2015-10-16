@@ -1,3 +1,7 @@
+v0.5.1
+------
+* Add missing migration.
+
 v0.5.0
 ------
 * Add support for Django 1.8.
