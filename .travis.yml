@@ -10,7 +10,8 @@ env:
   global:
     - DATABASE_URL='postgres://postgres@localhost/groups'
   matrix:
-    - DJANGO='django>=1.7,<1.8'
+    - DJANGO='django~=1.7.0'
+    - DJANGO='django~=1.8.0'
 install:
   - psql -c 'CREATE DATABASE groups' -U postgres;
   - pip install -r requirements.txt --use-wheel

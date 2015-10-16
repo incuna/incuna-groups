@@ -45,13 +45,15 @@ class TestGroupDetail(RequestTestCase):
 
 
 class TestCommentPostView(Python2AssertMixin, RequestTestCase):
-    view_class = views.CommentPostView
-
     def setUp(self):
         """Instantiate a minimal CommentPostView object."""
+        class TestView(views.CommentPostView):
+            """Set fields attribute to fulfil ModelFormMixin requirements."""
+            fields = ()
+
         self.discussion = factories.DiscussionFactory.create()
         self.request = self.create_request()
-        self.view_obj = self.view_class(
+        self.view_obj = TestView(
             request=self.request,
             kwargs={'pk': self.discussion.pk},
         )

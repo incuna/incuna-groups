@@ -1,6 +1,6 @@
 import datetime
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.db import models as django_models
 from django.test import TestCase
 from incuna_test_utils.compat import Python2AssertMixin
@@ -243,11 +243,11 @@ class TestWithinDaysQuerySetMixin(Python2AssertMixin, TestCase):
         """
         Declare some classes that will be used in this test.
 
-        We need a manager and a queryset that inherit from the mixin being tested,
-        and a proxy model that declares the mixed-in manager as its `objects` attribute
-        so that we can call the manager methods via ProxyModel.objects.method().
+        We need a manager and a queryset that inherit from the mixin
+        being tested.
 
-        This mixin is intended for use with User models, so we'll proxy that.
+        We also set the model attribute on a manager instance to emulate
+        adding the manager to a User model.
         """
         super(TestWithinDaysQuerySetMixin, self).__init__(*args, **kwargs)
 
@@ -262,14 +262,8 @@ class TestWithinDaysQuerySetMixin(Python2AssertMixin, TestCase):
             def get_queryset(self):
                 return MixedInQuerySet(self.model, using=self._db)
 
-        class ProxyUser(get_user_model()):
-            """A proxy for the User model that adds in our manager."""
-            objects = MixedInManager()
-
-            class Meta:
-                proxy = True
-
-        self.model = ProxyUser
+        self.manager = MixedInManager()
+        self.manager.model = User
 
     def setUp(self):
         self.recent_user = factories.UserFactory.create()
@@ -278,30 +272,30 @@ class TestWithinDaysQuerySetMixin(Python2AssertMixin, TestCase):
 
     def test_within_days_in_manager(self):
         """Assert that within_days() works properly when called from the manager."""
-        results = self.model.objects.within_days()
+        results = self.manager.within_days()
         self.assertCountEqual([self.recent_user], results)
 
     def test_within_days_in_queryset(self):
         """Assert that within_days() works properly when called from the queryset."""
-        results = self.model.objects.all().within_days()
+        results = self.manager.all().within_days()
         self.assertCountEqual([self.recent_user], results)
 
     def test_within_time_in_manager(self):
         """Assert that within_time() works properly when called from the manager."""
-        results = self.model.objects.within_time(datetime.timedelta(hours=6))
+        results = self.manager.within_time(datetime.timedelta(hours=6))
         self.assertCountEqual([self.recent_user], results)
 
     def test_within_time_in_queryset(self):
         """Assert that within_time() works properly when called from the queryset."""
-        results = self.model.objects.all().within_time(datetime.timedelta(hours=6))
+        results = self.manager.all().within_time(datetime.timedelta(hours=6))
         self.assertCountEqual([self.recent_user], results)
 
     def test_since_in_manager(self):
         """Assert that since() works properly when called from the manager."""
-        results = self.model.objects.since(datetime.date(2000, 1, 1))
+        results = self.manager.since(datetime.date(2000, 1, 1))
         self.assertCountEqual([self.recent_user], results)
 
     def test_since_in_queryset(self):
         """Assert that since() works properly when called from the queryset."""
-        results = self.model.objects.all().since(datetime.date(2000, 1, 1))
+        results = self.manager.all().since(datetime.date(2000, 1, 1))
         self.assertCountEqual([self.recent_user], results)
