@@ -1,3 +1,8 @@
+v0.5.0
+------
+* Add support for Django 1.8.
+* Relax pinning of dependencies in `setup.py`.
+
 v0.4.0
 ------
 * Added new manager methods for accessing groups, discussions, comments and users.
