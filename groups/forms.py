@@ -70,66 +70,44 @@ class DiscussionCreate(forms.Form):
     )
 
 
-class GroupSubscribeForm(forms.ModelForm):
+class SubscribeFormMixin(object):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
+
+    def __init__(self, user, instance, *args, **kwargs):
+        to_subscribe = self.to_subscribe(user, instance)
+        initial_values = kwargs.setdefault('initial', {})
+        initial_values['subscribe'] = to_subscribe
+
+        super(SubscribeFormMixin, self).__init__(*args, **kwargs)
+
+        button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.layout = Layout(
+            FormActions(
+                Submit('subscribe-submit', button_text),
+            ),
+        )
+        self.helper.form_action = reverse_lazy(
+            self.subscribe_url_name,
+            kwargs={'pk': instance.pk},
+        )
+
+
+class GroupSubscribeForm(SubscribeFormMixin, forms.ModelForm):
+    subscribe_url_name = 'group-subscribe'
 
     class Meta:
         model = models.Group
         fields = ()
 
-    def __init__(self, user, group, *args, **kwargs):
-        to_subscribe = user not in group.watchers.all()
-        initial_values = kwargs.setdefault('initial', {})
-        initial_values['subscribe'] = to_subscribe
-
-        super(GroupSubscribeForm, self).__init__(*args, **kwargs)
-
-        button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
-
-        self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.layout = Layout(
-            FormActions(
-                Submit('subscribe-submit', button_text),
-            ),
-        )
-        self.helper.form_action = reverse_lazy(
-            'group-subscribe',
-            kwargs={'pk': group.pk},
-        )
+    def to_subscribe(self, user, group):
+        return not group.watchers.filter(id=user.pk).exists()
 
 
-class DiscussionSubscribeForm(forms.Form):
-    subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
+class DiscussionSubscribeForm(SubscribeFormMixin, forms.Form):
+    subscribe_url_name = 'discussion-subscribe'
 
-    class Meta:
-        fields = ('subscribe',)
-
-    def __init__(self, user, discussion, *args, **kwargs):
-        """
-        Build the layout to reflect the action the form will take.
-
-        Accepts (and requires) a user and a discussion as keyword arguments.
-        """
-        to_subscribe = user not in discussion.subscribers.all()
-
-        # setdefault is like 'get', but if it misses, puts the specified
-        # default into kwargs and returns *that* object.
-        initial_values = kwargs.setdefault('initial', {})
-        initial_values['subscribe'] = to_subscribe
-
-        super(DiscussionSubscribeForm, self).__init__(*args, **kwargs)
-
-        button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
-
-        self.helper = FormHelper()
-        self.helper.form_class = 'form-horizontal'
-        self.helper.layout = Layout(
-            FormActions(
-                Submit('subscribe-submit', button_text),
-            ),
-        )
-        self.helper.form_action = reverse_lazy(
-            'discussion-subscribe',
-            kwargs={'pk': discussion.pk},
-        )
+    def to_subscribe(self, user, discussion):
+        return not discussion.subscribers.filter(id=user.pk).exists()

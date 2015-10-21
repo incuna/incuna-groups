@@ -29,8 +29,8 @@ class GroupDetail(ListView):
         context = super(GroupDetail, self).get_context_data(*args, **kwargs)
         context['group'] = self.group
         context['subscribe-form'] = self.subscribe_form_class(
-            self.request.user,
-            self.group,
+            user=self.request.user,
+            instance=self.group,
         )
         return context
 
@@ -46,7 +46,7 @@ class GroupSubscribe(UpdateView):
 
     def get_form_kwargs(self):
         kwargs = super(GroupSubscribe, self).get_form_kwargs()
-        kwargs.update({'user': self.request.user, 'group': self.object})
+        kwargs.update({'user': self.request.user, 'instance': self.object})
         return kwargs
 
     def form_valid(self, form):
@@ -139,7 +139,7 @@ class DiscussionThread(CommentPostView):
         """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
         discussion = self.discussion
-        form = self.subscribe_form_class(user=self.request.user, discussion=discussion)
+        form = self.subscribe_form_class(user=self.request.user, instance=discussion)
         context['comments'] = self.get_queryset()
         context['group'] = discussion.group
         context['subscribe-form'] = form
@@ -165,14 +165,14 @@ class DiscussionSubscribe(FormView):
         kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
         kwargs.update({
             'user': self.request.user,
-            'discussion': self.discussion,
+            'instance': self.discussion,
         })
         return kwargs
 
     def form_valid(self, form):
         user = self.request.user
 
-        if form.cleaned_data['subscribe']:
+        if form.initial['subscribe']:
             self.discussion.subscribers.add(user)
         else:
             self.discussion.subscribers.remove(user)
