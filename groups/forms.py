@@ -74,6 +74,12 @@ class SubscribeFormMixin(object):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, user, instance, *args, **kwargs):
+        """
+        Build the layout to reflect the action the form will take.
+
+        Accepts (and requires) a user and an instance being subscribed to
+        as keyword arguments.
+        """
         to_subscribe = self.to_subscribe(user, instance)
         initial_values = kwargs.setdefault('initial', {})
         initial_values['subscribe'] = to_subscribe
