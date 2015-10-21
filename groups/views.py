@@ -28,7 +28,7 @@ class GroupDetail(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(GroupDetail, self).get_context_data(*args, **kwargs)
         context['group'] = self.group
-        context['subscribe-form'] = self.subscribe_form_class(
+        context['group-subscribe-form'] = self.subscribe_form_class(
             user=self.request.user,
             instance=self.group,
         )
@@ -142,7 +142,7 @@ class DiscussionThread(CommentPostView):
         form = self.subscribe_form_class(user=self.request.user, instance=discussion)
         context['comments'] = self.get_queryset()
         context['group'] = discussion.group
-        context['subscribe-form'] = form
+        context['discussion-subscribe-form'] = form
         return context
 
 
