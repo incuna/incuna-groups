@@ -44,6 +44,32 @@ class TestGroupDetail(RequestTestCase):
         self.assertEqual(group, detail_object)
 
 
+class TestGroupSubscribe(RequestTestCase):
+    def setUp(self):
+        self.view = views.GroupSubscribe.as_view()
+
+    def test_form_subscribe(self):
+        group = factories.GroupFactory.create()
+        request = self.create_request('post', data={'subscribe': True})
+
+        response = self.view(request, pk=group.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(request.user, group.watchers.all())
+        self.assertIn(group, request.user.watched_groups.all())
+
+    def test_form_unsubscribe(self):
+        group = factories.GroupFactory.create()
+        request = self.create_request('post', data={'subscribe': False})
+        group.watchers.add(request.user)
+
+        response = self.view(request, pk=group.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(request.user, group.watchers.all())
+        self.assertNotIn(group, request.user.watched_groups.all())
+
+
 class TestCommentPostView(Python2AssertMixin, RequestTestCase):
     def setUp(self):
         """Instantiate a minimal CommentPostView object."""

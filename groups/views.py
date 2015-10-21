@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, FormView, ListView
+from django.views.generic import CreateView, FormView, ListView, UpdateView
 from django.views.generic.edit import DeleteView
 
 from . import forms, models
@@ -32,6 +32,21 @@ class GroupDetail(ListView):
     def dispatch(self, request, *args, **kwargs):
         self.group = get_object_or_404(models.Group, pk=self.kwargs['pk'])
         return super(GroupDetail, self).dispatch(request, *args, **kwargs)
+
+
+class GroupSubscribe(UpdateView):
+    form_class = forms.GroupSubscribeForm
+    model = models.Group
+
+    def form_valid(self, form):
+        user = self.request.user
+
+        if form.cleaned_data['subscribe']:
+            self.object.watchers.add(user)
+        else:
+            self.object.watchers.remove(user)
+
+        return super(GroupSubscribe, self).form_valid(form)
 
 
 class DiscussionCreate(FormView):

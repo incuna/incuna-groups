@@ -70,6 +70,14 @@ class DiscussionCreate(forms.Form):
     )
 
 
+class GroupSubscribeForm(forms.ModelForm):
+    subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
+
+    class Meta:
+        model = models.Group
+        fields = ()
+
+
 class DiscussionSubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
