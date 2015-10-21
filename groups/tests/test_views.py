@@ -72,9 +72,8 @@ class TestGroupSubscribe(RequestTestCase):
 
 
 class TestGroupSubscribeIntegration(WebTest):
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = factories.UserFactory.create()
+    def setUp(self):
+        self.user = factories.UserFactory.create()
 
     def test_subscribe_unsubscribe(self):
         group = factories.GroupFactory.create()
