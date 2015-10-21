@@ -39,6 +39,7 @@ settings.configure(
     TEMPLATE_CONTEXT_PROCESSORS=TEMPLATE_CONTEXT_PROCESSORS + (
         'django.core.context_processors.request',
     ),
+    STATIC_URL='/static/',
 )
 
 try:

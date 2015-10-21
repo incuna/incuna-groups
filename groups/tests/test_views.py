@@ -7,6 +7,7 @@ except ImportError:
 
 import pytz
 from django.core.urlresolvers import reverse
+from django_webtest import WebTest
 from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
@@ -68,6 +69,34 @@ class TestGroupSubscribe(RequestTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertNotIn(request.user, group.watchers.all())
         self.assertNotIn(group, request.user.watched_groups.all())
+
+
+class TestGroupSubscribeIntegration(WebTest):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = factories.UserFactory.create()
+
+    def test_subscribe_unsubscribe(self):
+        group = factories.GroupFactory.create()
+        group_url = reverse('group-detail', kwargs={'pk': group.pk})
+
+        form = self.app.get(group_url, user=self.user).form
+
+        submit_button = form.fields['subscribe-submit'][0]
+        self.assertEqual(submit_button._value, 'Subscribe')
+
+        form.submit()
+
+        self.assertIn(self.user, group.watchers.all())
+
+        form = self.app.get(group_url, user=self.user).form
+
+        submit_button = form.fields['subscribe-submit'][0]
+        self.assertEqual(submit_button._value, 'Unsubscribe')
+
+        form.submit()
+
+        self.assertNotIn(self.user, group.watchers.all())
 
 
 class TestCommentPostView(Python2AssertMixin, RequestTestCase):

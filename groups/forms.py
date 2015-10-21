@@ -77,6 +77,27 @@ class GroupSubscribeForm(forms.ModelForm):
         model = models.Group
         fields = ()
 
+    def __init__(self, user, group, *args, **kwargs):
+        to_subscribe = user not in group.watchers.all()
+        initial_values = kwargs.setdefault('initial', {})
+        initial_values['subscribe'] = to_subscribe
+
+        super(GroupSubscribeForm, self).__init__(*args, **kwargs)
+
+        button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
+
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.layout = Layout(
+            FormActions(
+                Submit('subscribe-submit', button_text),
+            ),
+        )
+        self.helper.form_action = reverse_lazy(
+            'group-subscribe',
+            kwargs={'pk': group.pk},
+        )
+
 
 class DiscussionSubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)

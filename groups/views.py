@@ -20,6 +20,7 @@ class GroupDetail(ListView):
     model = models.Discussion
     paginate_by = 5
     template_name = 'groups/group_detail.html'
+    subscribe_form_class = forms.GroupSubscribeForm
 
     def get_queryset(self):
         return super(GroupDetail, self).get_queryset().filter(group=self.group)
@@ -27,6 +28,10 @@ class GroupDetail(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(GroupDetail, self).get_context_data(*args, **kwargs)
         context['group'] = self.group
+        context['subscribe-form'] = self.subscribe_form_class(
+            self.request.user,
+            self.group,
+        )
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -37,11 +42,17 @@ class GroupDetail(ListView):
 class GroupSubscribe(UpdateView):
     form_class = forms.GroupSubscribeForm
     model = models.Group
+    template_name = 'groups/group_subscribe_button.html'
+
+    def get_form_kwargs(self):
+        kwargs = super(GroupSubscribe, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user, 'group': self.object})
+        return kwargs
 
     def form_valid(self, form):
         user = self.request.user
 
-        if form.cleaned_data['subscribe']:
+        if form.initial['subscribe']:
             self.object.watchers.add(user)
         else:
             self.object.watchers.remove(user)
