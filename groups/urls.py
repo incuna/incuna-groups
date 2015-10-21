@@ -16,6 +16,11 @@ urlpatterns = [
             views.DiscussionCreate.as_view(),
             name='discussion-create',
         ),
+        url(
+            r'^subscribe/$',
+            views.GroupSubscribe.as_view(),
+            name='group-subscribe',
+        ),
     ])),
     url(r'^discussions/(?P<pk>\d+)/', include([
         url(

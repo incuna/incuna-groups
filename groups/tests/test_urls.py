@@ -21,6 +21,14 @@ class TestGroupUrls(URLTestCase):
             url_kwargs={'pk': self.pk}
         )
 
+    def test_group_subscribe(self):
+        self.assert_url_matches_view(
+            views.GroupSubscribe,
+            '/groups/{}/subscribe/'.format(self.pk),
+            'group-subscribe',
+            url_kwargs={'pk': self.pk}
+        )
+
     def test_discussion_create(self):
         self.assert_url_matches_view(
             views.DiscussionCreate,
