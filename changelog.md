@@ -1,3 +1,8 @@
+v0.6.0
+------
+
+* Add `GroupSubscribe` view.
+
 v0.5.1
 ------
 * Add missing migration.
