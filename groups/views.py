@@ -2,7 +2,8 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, FormView, ListView, UpdateView
+from django.views.generic import CreateView, FormView, ListView
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
 
 from . import forms, models
@@ -39,11 +40,15 @@ class GroupDetail(ListView):
         return super(GroupDetail, self).dispatch(request, *args, **kwargs)
 
 
-class SubscribeBase(UpdateView):
+class SubscribeBase(SingleObjectMixin, FormView):
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(SubscribeBase, self).dispatch(request, *args, **kwargs)
+
     def get_form_kwargs(self):
         """Pass the user to the form to check subscription state."""
         kwargs = super(SubscribeBase, self).get_form_kwargs()
-        kwargs.update({'user': self.request.user})
+        kwargs.update({'user': self.request.user, 'instance': self.object})
         return kwargs
 
     def form_valid(self, form):
@@ -56,6 +61,9 @@ class SubscribeBase(UpdateView):
             self.remove(user)
 
         return super(SubscribeBase, self).form_valid(form)
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
 
 class GroupSubscribe(SubscribeBase):

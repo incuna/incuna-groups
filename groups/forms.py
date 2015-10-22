@@ -70,7 +70,7 @@ class DiscussionCreate(forms.Form):
     )
 
 
-class SubscribeForm(forms.ModelForm):
+class SubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, user, instance, *args, **kwargs):
@@ -84,7 +84,7 @@ class SubscribeForm(forms.ModelForm):
         initial_values = kwargs.setdefault('initial', {})
         initial_values['subscribe'] = to_subscribe
 
-        super(SubscribeForm, self).__init__(*args, instance=instance, **kwargs)
+        super(SubscribeForm, self).__init__(*args, **kwargs)
 
         button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
 
@@ -104,20 +104,12 @@ class SubscribeForm(forms.ModelForm):
 class GroupSubscribeForm(SubscribeForm):
     subscribe_url_name = 'group-subscribe'
 
-    class Meta:
-        model = models.Group
-        fields = ()
-
     def to_subscribe(self, user, group):
         return not group.watchers.filter(id=user.pk).exists()
 
 
 class DiscussionSubscribeForm(SubscribeForm):
     subscribe_url_name = 'discussion-subscribe'
-
-    class Meta:
-        model = models.Discussion
-        fields = ()
 
     def to_subscribe(self, user, discussion):
         return not discussion.subscribers.filter(id=user.pk).exists()
