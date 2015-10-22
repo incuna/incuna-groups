@@ -11,6 +11,7 @@
 {% endblock back_link %}
 
 {% block groups_main_content %}
+    {% include "groups/group_subscribe_button.html" %}
     <a href="{% url 'discussion-create' group.pk %}">Start a new discussion</a>
     <ul>
         {% for discussion in object_list %}

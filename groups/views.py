@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView
+from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
 
 from . import forms, models
@@ -20,6 +21,7 @@ class GroupDetail(ListView):
     model = models.Discussion
     paginate_by = 5
     template_name = 'groups/group_detail.html'
+    subscribe_form_class = forms.SubscribeForm
 
     def get_queryset(self):
         return super(GroupDetail, self).get_queryset().filter(group=self.group)
@@ -27,11 +29,54 @@ class GroupDetail(ListView):
     def get_context_data(self, *args, **kwargs):
         context = super(GroupDetail, self).get_context_data(*args, **kwargs)
         context['group'] = self.group
+        context['group-subscribe-form'] = self.subscribe_form_class(
+            user=self.request.user,
+            instance=self.group,
+            url_name='group-subscribe',
+        )
         return context
 
     def dispatch(self, request, *args, **kwargs):
         self.group = get_object_or_404(models.Group, pk=self.kwargs['pk'])
         return super(GroupDetail, self).dispatch(request, *args, **kwargs)
+
+
+class SubscribeBase(SingleObjectMixin, FormView):
+    form_class = forms.SubscribeForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super(SubscribeBase, self).dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        """Pass the user to the form to check subscription state."""
+        kwargs = super(SubscribeBase, self).get_form_kwargs()
+        kwargs.update({
+            'user': self.request.user,
+            'instance': self.object,
+            'url_name': self.subscribe_url_name,
+        })
+        return kwargs
+
+    def form_valid(self, form):
+        """Subscribe or unsubscribe the request user."""
+        user = self.request.user
+
+        if form.cleaned_data['subscribe']:
+            self.object.subscribe(user)
+        else:
+            self.object.unsubscribe(user)
+
+        return super(SubscribeBase, self).form_valid(form)
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
+
+
+class GroupSubscribe(SubscribeBase):
+    model = models.Group
+    template_name = 'groups/group_subscribe_button.html'
+    subscribe_url_name = 'group-subscribe'
 
 
 class DiscussionCreate(FormView):
@@ -96,7 +141,7 @@ class CommentPostView(CreateView):
 class DiscussionThread(CommentPostView):
     """Allow a user to read and comment on a Discussion."""
     form_class = forms.AddTextComment
-    subscribe_form_class = forms.DiscussionSubscribeForm
+    subscribe_form_class = forms.SubscribeForm
     template_name = 'groups/discussion_thread.html'
 
     def get_queryset(self):
@@ -113,10 +158,14 @@ class DiscussionThread(CommentPostView):
         """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
         discussion = self.discussion
-        form = self.subscribe_form_class(user=self.request.user, discussion=discussion)
+        form = self.subscribe_form_class(
+            user=self.request.user,
+            instance=discussion,
+            url_name='discussion-subscribe',
+        )
         context['comments'] = self.get_queryset()
         context['group'] = discussion.group
-        context['subscribe-form'] = form
+        context['discussion-subscribe-form'] = form
         return context
 
 
@@ -126,35 +175,11 @@ class CommentUploadFile(CommentPostView):
     template_name = 'groups/comment_upload_file.html'
 
 
-class DiscussionSubscribe(FormView):
+class DiscussionSubscribe(SubscribeBase):
     """Provide an endpoint for the subscribe/unsubscribe button."""
-    form_class = forms.DiscussionSubscribeForm
+    model = models.Discussion
     template_name = 'groups/subscribe_button.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        self.discussion = get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
-        return super(DiscussionSubscribe, self).dispatch(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
-        kwargs.update({
-            'user': self.request.user,
-            'discussion': self.discussion,
-        })
-        return kwargs
-
-    def form_valid(self, form):
-        user = self.request.user
-
-        if form.cleaned_data['subscribe']:
-            self.discussion.subscribers.add(user)
-        else:
-            self.discussion.subscribers.remove(user)
-
-        return super(DiscussionSubscribe, self).form_valid(form)
-
-    def get_success_url(self):
-        return self.discussion.get_absolute_url()
+    subscribe_url_name = 'discussion-subscribe'
 
 
 class CommentDelete(DeleteView):

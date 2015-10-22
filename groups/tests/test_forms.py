@@ -71,29 +71,34 @@ class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
         self.assertIn('name', form.errors)
 
 
-class TestDiscussionSubscribeForm(Python2AssertMixin, RequestTestCase):
-    form = forms.DiscussionSubscribeForm
+class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
+    form = forms.SubscribeForm
 
-    def test_form_fields(self):
-        expected = ['subscribe']
-        fields = self.form.base_fields.keys()
-        self.assertCountEqual(fields, expected)
+    def setUp(self):
+        self.discussion = factories.DiscussionFactory.create()
+        self.user = self.discussion.creator
+
+    def get_form(self, **kwargs):
+        return self.form(
+            user=self.user,
+            instance=self.discussion,
+            url_name='discussion-subscribe',
+            **kwargs
+        )
 
     def test_form_valid(self):
-        discussion = factories.DiscussionFactory.create()
-        user = discussion.creator
-        form = self.form(data={}, user=user, discussion=discussion)
+        form = self.get_form(data={})
+
         self.assertTrue(form.is_valid(), msg=form.errors)
 
     def test_initial_subscribe(self):
-        discussion = factories.DiscussionFactory.create()
-        user = discussion.creator
-        form = self.form(user=user, discussion=discussion)
+        form = self.get_form()
+
         self.assertTrue(form.initial['subscribe'])
 
     def test_initial_unsubscribe(self):
-        discussion = factories.DiscussionFactory.create()
-        user = discussion.creator
-        discussion.subscribers.add(user)
-        form = self.form(user=user, discussion=discussion)
+        self.discussion.subscribers.add(self.user)
+
+        form = self.get_form()
+
         self.assertFalse(form.initial['subscribe'])
