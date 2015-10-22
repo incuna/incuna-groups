@@ -6,6 +6,7 @@ except ImportError:
     import mock
 
 import pytz
+from django.core import mail
 from django.core.urlresolvers import reverse
 from django_webtest import WebTest
 from incuna_test_utils.compat import Python2AssertMixin
@@ -256,6 +257,33 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertEqual(response.status_code, 302)
         expected = reverse('discussion-thread', kwargs={'pk': discussion.pk})
         self.assertEqual(response['Location'], expected)
+
+    def test_email_subscribers(self):
+        """
+        Test notification emails for a new discussion.
+
+        Assert that subscribers to a group are emailed correctly when a new discussion
+        is posted there, apart from the discussion's creator.
+        """
+        group = factories.GroupFactory.create()
+        subscriber = factories.UserFactory.create()
+        creator = factories.UserFactory.create()
+        group.subscribe(subscriber)
+        group.subscribe(creator)
+
+        new_discussion = factories.DiscussionFactory.create(creator=creator, group=group)
+
+        view = self.view_class()
+        view.request = self.create_request(user=creator)
+        view.email_subscribers(new_discussion)
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
+        self.assertEqual(email.to, [subscriber.email])
+        self.assertIn(email.body, 'A new discussion {}'.format(new_discussion.name))
+        self.assertIn(email.body, subscriber.name)
+        self.assertIn(email.body, new_discussion.comments.first().body)
 
 
 class TestDiscussionSubscribe(RequestTestCase):

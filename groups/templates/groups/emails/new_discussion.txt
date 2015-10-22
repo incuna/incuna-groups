@@ -1,5 +1,7 @@
 {% load i18n %}{% blocktrans with name=discussion.name group=discussion.group.name creator=discussion.creator.name %}Dear {{ user.name }},
 
-A new discussion "{{ name }}" has been posted to the group {{ group }} by {{ creator }}.{% endblocktrans %}
+A new discussion "{{ name }}" has been posted to the group {{ group }} by {{ creator }}:{% endblocktrans %}
+
+{{ discussion.comments.first.body }}
 
 {% blocktrans with url=discussion.get_absolute_url %}Click here to reply online: {{ site.domain }}{{ url }}{% endblocktrans %}

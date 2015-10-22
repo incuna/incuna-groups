@@ -12,3 +12,6 @@ class GroupsConfig(AppConfig):
     """
     name = 'groups'
     default_within_days = 7
+
+    new_comment_subject = 'New comment in {discussion}'
+    new_discussion_subject = 'New discussion in {group}'

@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -5,8 +6,13 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
+from incuna_mail import send
 
 from . import forms, models
+
+
+NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
+NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
 
 class GroupList(ListView):
@@ -109,7 +115,22 @@ class DiscussionCreate(FormView):
             user=user,
         )
         self.pk = discussion.pk
+        self.email_subscribers(discussion)
         return super(DiscussionCreate, self).form_valid(form)
+
+    def email_subscribers(self, discussion):
+        """Notify all subscribers to the discussion's parent group, except its creator."""
+        users = discussion.group.watchers.exclude(pk=self.request.user.pk)
+        for user in users:
+            send(
+                to=user.email,
+                subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
+                template_name='groups/emails/new_comment.txt',
+                context={
+                    'discussion': discussion,
+                    'user': self.request.user,
+                }
+            )
 
 
 class CommentPostView(CreateView):
