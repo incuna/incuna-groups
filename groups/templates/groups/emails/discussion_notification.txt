@@ -1,0 +1,9 @@
+{% load i18n %}{% blocktrans with name=comment.discussion.name creator=comment.creator.name %}Dear {{ user.name }},
+
+A new comment has been posted to the discussion {{ name }} by {{ creator }}{% endblocktrans %}{% if comment.body %}:
+
+{{ comment.body }}
+
+{% else %}.{% endif %}
+
+{% blocktrans with url=comment.get_absolute_url %}Click here to reply online: {{ site.domain }}{{ url }}{% endblocktrans %}
