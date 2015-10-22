@@ -21,7 +21,7 @@ class GroupDetail(ListView):
     model = models.Discussion
     paginate_by = 5
     template_name = 'groups/group_detail.html'
-    subscribe_form_class = forms.GroupSubscribeForm
+    subscribe_form_class = forms.SubscribeForm
 
     def get_queryset(self):
         return super(GroupDetail, self).get_queryset().filter(group=self.group)
@@ -32,6 +32,7 @@ class GroupDetail(ListView):
         context['group-subscribe-form'] = self.subscribe_form_class(
             user=self.request.user,
             instance=self.group,
+            url_name='group-subscribe',
         )
         return context
 
@@ -41,6 +42,8 @@ class GroupDetail(ListView):
 
 
 class SubscribeBase(SingleObjectMixin, FormView):
+    form_class = forms.SubscribeForm
+
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super(SubscribeBase, self).dispatch(request, *args, **kwargs)
@@ -48,7 +51,11 @@ class SubscribeBase(SingleObjectMixin, FormView):
     def get_form_kwargs(self):
         """Pass the user to the form to check subscription state."""
         kwargs = super(SubscribeBase, self).get_form_kwargs()
-        kwargs.update({'user': self.request.user, 'instance': self.object})
+        kwargs.update({
+            'user': self.request.user,
+            'instance': self.object,
+            'url_name': self.subscribe_url_name,
+        })
         return kwargs
 
     def form_valid(self, form):
@@ -56,9 +63,9 @@ class SubscribeBase(SingleObjectMixin, FormView):
         user = self.request.user
 
         if form.initial['subscribe']:
-            self.add(user)
+            self.object.subscribe(user)
         else:
-            self.remove(user)
+            self.object.unsubscribe(user)
 
         return super(SubscribeBase, self).form_valid(form)
 
@@ -67,17 +74,9 @@ class SubscribeBase(SingleObjectMixin, FormView):
 
 
 class GroupSubscribe(SubscribeBase):
-    form_class = forms.GroupSubscribeForm
     model = models.Group
     template_name = 'groups/group_subscribe_button.html'
-
-    def add(self, user):
-        """Subscribe the user to the group."""
-        self.object.watchers.add(user)
-
-    def remove(self, user):
-        """Unsubscribe the user from the group."""
-        self.object.watchers.remove(user)
+    subscribe_url_name = 'group-subscribe'
 
 
 class DiscussionCreate(FormView):
@@ -142,7 +141,7 @@ class CommentPostView(CreateView):
 class DiscussionThread(CommentPostView):
     """Allow a user to read and comment on a Discussion."""
     form_class = forms.AddTextComment
-    subscribe_form_class = forms.DiscussionSubscribeForm
+    subscribe_form_class = forms.SubscribeForm
     template_name = 'groups/discussion_thread.html'
 
     def get_queryset(self):
@@ -159,7 +158,11 @@ class DiscussionThread(CommentPostView):
         """Attach the discussion and its existing comments to the context."""
         context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
         discussion = self.discussion
-        form = self.subscribe_form_class(user=self.request.user, instance=discussion)
+        form = self.subscribe_form_class(
+            user=self.request.user,
+            instance=discussion,
+            url_name='discussion-subscribe',
+        )
         context['comments'] = self.get_queryset()
         context['group'] = discussion.group
         context['discussion-subscribe-form'] = form
@@ -174,17 +177,9 @@ class CommentUploadFile(CommentPostView):
 
 class DiscussionSubscribe(SubscribeBase):
     """Provide an endpoint for the subscribe/unsubscribe button."""
-    form_class = forms.DiscussionSubscribeForm
     model = models.Discussion
     template_name = 'groups/subscribe_button.html'
-
-    def add(self, user):
-        """Subscribe the user to the discussion."""
-        self.object.subscribers.add(user)
-
-    def remove(self, user):
-        """Unsubscribe the user from the discussion."""
-        self.object.subscribers.remove(user)
+    subscribe_url_name = 'discussion-subscribe'
 
 
 class CommentDelete(DeleteView):

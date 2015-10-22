@@ -36,6 +36,15 @@ class Group(models.Model):
     def get_absolute_url(self):
         return reverse('group-detail', kwargs={'pk': self.pk})
 
+    def subscribe(self, user):
+        self.watchers.add(user)
+
+    def unsubscribe(self, user):
+        self.watchers.remove(user)
+
+    def is_subscribed(self, user):
+        return self.watchers.filter(id=user.pk).exists()
+
 
 class Discussion(models.Model):
     """A model for a discussion thread in a group."""
@@ -64,6 +73,15 @@ class Discussion(models.Model):
 
     def get_total_replies(self):
         return self.comments.count()
+
+    def subscribe(self, user):
+        self.subscribers.add(user)
+
+    def unsubscribe(self, user):
+        self.subscribers.remove(user)
+
+    def is_subscribed(self, user):
+        return self.subscribers.filter(id=user.pk).exists()
 
 
 class BaseComment(PolymorphicModel):

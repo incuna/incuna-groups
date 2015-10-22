@@ -73,14 +73,14 @@ class DiscussionCreate(forms.Form):
 class SubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
-    def __init__(self, user, instance, *args, **kwargs):
+    def __init__(self, user, instance, url_name, *args, **kwargs):
         """
         Build the layout to reflect the action the form will take.
 
         Accepts (and requires) a user and an instance being subscribed to
         as keyword arguments.
         """
-        to_subscribe = self.to_subscribe(user, instance)
+        to_subscribe = not instance.is_subscribed(user)
         initial_values = kwargs.setdefault('initial', {})
         initial_values['subscribe'] = to_subscribe
 
@@ -95,21 +95,4 @@ class SubscribeForm(forms.Form):
                 Submit('subscribe-submit', button_text),
             ),
         )
-        self.helper.form_action = reverse_lazy(
-            self.subscribe_url_name,
-            kwargs={'pk': instance.pk},
-        )
-
-
-class GroupSubscribeForm(SubscribeForm):
-    subscribe_url_name = 'group-subscribe'
-
-    def to_subscribe(self, user, group):
-        return not group.watchers.filter(id=user.pk).exists()
-
-
-class DiscussionSubscribeForm(SubscribeForm):
-    subscribe_url_name = 'discussion-subscribe'
-
-    def to_subscribe(self, user, discussion):
-        return not discussion.subscribers.filter(id=user.pk).exists()
+        self.helper.form_action = reverse_lazy(url_name, kwargs={'pk': instance.pk})

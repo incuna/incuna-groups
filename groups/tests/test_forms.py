@@ -71,24 +71,37 @@ class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
         self.assertIn('name', form.errors)
 
 
-class TestDiscussionSubscribeForm(Python2AssertMixin, RequestTestCase):
-    form = forms.DiscussionSubscribeForm
+class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
+    form = forms.SubscribeForm
 
     def test_form_valid(self):
         discussion = factories.DiscussionFactory.create()
         user = discussion.creator
-        form = self.form(data={}, user=user, instance=discussion)
+        form = self.form(
+            data={},
+            user=user,
+            instance=discussion,
+            url_name='discussion-subscribe',
+        )
         self.assertTrue(form.is_valid(), msg=form.errors)
 
     def test_initial_subscribe(self):
         discussion = factories.DiscussionFactory.create()
         user = discussion.creator
-        form = self.form(user=user, instance=discussion)
+        form = self.form(
+            user=user,
+            instance=discussion,
+            url_name='discussion-subscribe',
+        )
         self.assertTrue(form.initial['subscribe'])
 
     def test_initial_unsubscribe(self):
         discussion = factories.DiscussionFactory.create()
         user = discussion.creator
         discussion.subscribers.add(user)
-        form = self.form(user=user, instance=discussion)
+        form = self.form(
+            user=user,
+            instance=discussion,
+            url_name='discussion-subscribe',
+        )
         self.assertFalse(form.initial['subscribe'])
