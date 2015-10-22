@@ -39,25 +39,37 @@ class GroupDetail(ListView):
         return super(GroupDetail, self).dispatch(request, *args, **kwargs)
 
 
-class GroupSubscribe(UpdateView):
+class SubscribeBase(UpdateView):
+    def get_form_kwargs(self):
+        """Pass the user to the form to check subscription state."""
+        kwargs = super(SubscribeBase, self).get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
+    def form_valid(self, form):
+        """Subscribe or unsubscribe the request user."""
+        user = self.request.user
+
+        if form.initial['subscribe']:
+            self.add(user)
+        else:
+            self.remove(user)
+
+        return super(SubscribeBase, self).form_valid(form)
+
+
+class GroupSubscribe(SubscribeBase):
     form_class = forms.GroupSubscribeForm
     model = models.Group
     template_name = 'groups/group_subscribe_button.html'
 
-    def get_form_kwargs(self):
-        kwargs = super(GroupSubscribe, self).get_form_kwargs()
-        kwargs.update({'user': self.request.user, 'instance': self.object})
-        return kwargs
+    def add(self, user):
+        """Subscribe the user to the group."""
+        self.object.watchers.add(user)
 
-    def form_valid(self, form):
-        user = self.request.user
-
-        if form.initial['subscribe']:
-            self.object.watchers.add(user)
-        else:
-            self.object.watchers.remove(user)
-
-        return super(GroupSubscribe, self).form_valid(form)
+    def remove(self, user):
+        """Unsubscribe the user from the group."""
+        self.object.watchers.remove(user)
 
 
 class DiscussionCreate(FormView):
@@ -152,35 +164,19 @@ class CommentUploadFile(CommentPostView):
     template_name = 'groups/comment_upload_file.html'
 
 
-class DiscussionSubscribe(FormView):
+class DiscussionSubscribe(SubscribeBase):
     """Provide an endpoint for the subscribe/unsubscribe button."""
     form_class = forms.DiscussionSubscribeForm
+    model = models.Discussion
     template_name = 'groups/subscribe_button.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        self.discussion = get_object_or_404(models.Discussion, pk=self.kwargs['pk'])
-        return super(DiscussionSubscribe, self).dispatch(request, *args, **kwargs)
+    def add(self, user):
+        """Subscribe the user to the discussion."""
+        self.object.subscribers.add(user)
 
-    def get_form_kwargs(self):
-        kwargs = super(DiscussionSubscribe, self).get_form_kwargs()
-        kwargs.update({
-            'user': self.request.user,
-            'instance': self.discussion,
-        })
-        return kwargs
-
-    def form_valid(self, form):
-        user = self.request.user
-
-        if form.initial['subscribe']:
-            self.discussion.subscribers.add(user)
-        else:
-            self.discussion.subscribers.remove(user)
-
-        return super(DiscussionSubscribe, self).form_valid(form)
-
-    def get_success_url(self):
-        return self.discussion.get_absolute_url()
+    def remove(self, user):
+        """Unsubscribe the user from the discussion."""
+        self.object.subscribers.remove(user)
 
 
 class CommentDelete(DeleteView):

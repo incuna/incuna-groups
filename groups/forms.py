@@ -70,7 +70,7 @@ class DiscussionCreate(forms.Form):
     )
 
 
-class SubscribeFormMixin(object):
+class SubscribeForm(forms.ModelForm):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, user, instance, *args, **kwargs):
@@ -84,7 +84,7 @@ class SubscribeFormMixin(object):
         initial_values = kwargs.setdefault('initial', {})
         initial_values['subscribe'] = to_subscribe
 
-        super(SubscribeFormMixin, self).__init__(*args, **kwargs)
+        super(SubscribeForm, self).__init__(*args, instance=instance, **kwargs)
 
         button_text = 'Subscribe' if to_subscribe else 'Unsubscribe'
 
@@ -101,7 +101,7 @@ class SubscribeFormMixin(object):
         )
 
 
-class GroupSubscribeForm(SubscribeFormMixin, forms.ModelForm):
+class GroupSubscribeForm(SubscribeForm):
     subscribe_url_name = 'group-subscribe'
 
     class Meta:
@@ -112,8 +112,12 @@ class GroupSubscribeForm(SubscribeFormMixin, forms.ModelForm):
         return not group.watchers.filter(id=user.pk).exists()
 
 
-class DiscussionSubscribeForm(SubscribeFormMixin, forms.Form):
+class DiscussionSubscribeForm(SubscribeForm):
     subscribe_url_name = 'discussion-subscribe'
+
+    class Meta:
+        model = models.Discussion
+        fields = ()
 
     def to_subscribe(self, user, discussion):
         return not discussion.subscribers.filter(id=user.pk).exists()
