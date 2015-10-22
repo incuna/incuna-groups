@@ -62,7 +62,7 @@ class SubscribeBase(SingleObjectMixin, FormView):
         """Subscribe or unsubscribe the request user."""
         user = self.request.user
 
-        if form.initial['subscribe']:
+        if form.cleaned_data['subscribe']:
             self.object.subscribe(user)
         else:
             self.object.unsubscribe(user)

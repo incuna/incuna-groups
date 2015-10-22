@@ -73,6 +73,9 @@ class DiscussionCreate(forms.Form):
 class SubscribeForm(forms.Form):
     subscribe = forms.BooleanField(widget=forms.HiddenInput(), required=False)
 
+    class Meta:
+        fields = ('subscribe',)
+
     def __init__(self, user, instance, url_name, *args, **kwargs):
         """
         Build the layout to reflect the action the form will take.
