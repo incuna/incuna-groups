@@ -23,12 +23,6 @@ class UserFactory(factory.DjangoModelFactory):
         if create:
             self.save()
 
-    @factory.post_generation
-    def name(self, create, extracted, **kwargs):
-        self.name = self.username if extracted is None else extracted
-        if create:
-            self.save()
-
 
 class AdminFactory(UserFactory):
     is_staff = True
@@ -51,19 +45,23 @@ class DiscussionFactory(factory.DjangoModelFactory):
         model = models.Discussion
 
 
-class TextCommentFactory(factory.DjangoModelFactory):
-    body = factory.Sequence('Comment {}'.format)
+class BaseCommentFactory(factory.DjangoModelFactory):
     discussion = factory.SubFactory(DiscussionFactory)
     user = factory.SubFactory(UserFactory)
+
+    class Meta:
+        model = models.BaseComment
+
+
+class TextCommentFactory(BaseCommentFactory):
+    body = factory.Sequence('Comment {}'.format)
 
     class Meta:
         model = models.TextComment
 
 
-class FileCommentFactory(factory.DjangoModelFactory):
+class FileCommentFactory(BaseCommentFactory):
     file = images.LocalFileField()
-    discussion = factory.SubFactory(DiscussionFactory)
-    user = factory.SubFactory(UserFactory)
 
     class Meta:
         model = models.FileComment

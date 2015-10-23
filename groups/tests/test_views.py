@@ -132,6 +132,37 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         self.assertEqual(form.instance.user, self.request.user)
         self.assertEqual(form.instance.discussion, self.discussion)
 
+    def test_users_to_notify(self):
+        """
+        Test that users_to_notify picks the right users.
+
+        * All subscribers to the discussion,
+        * plus all subscribers to the discussion's parent group,
+        * minus everyone who ignored the discussion,
+        * minus the user who posted the comment.
+        """
+        (
+            group_subscriber,
+            discussion_subscriber,
+            discussion_ignorer,
+            comment_poster,
+            unrelated_user,
+        ) = factories.UserFactory.create_batch(5)
+
+        group = factories.GroupFactory.create()
+        discussion = factories.DiscussionFactory.create(group=group)
+        comment = factories.BaseCommentFactory.create(
+            user=comment_poster,
+            discussion=discussion,
+        )
+
+        group.watchers = [group_subscriber, discussion_ignorer, comment_poster]
+        discussion.subscribers = [discussion_subscriber, comment_poster]
+        discussion.ignorers = [discussion_ignorer]
+
+        users = self.view_obj.users_to_notify(comment)
+        self.assertEqual(set(users), {group_subscriber, discussion_subscriber})
+
     def test_email_subscribers(self):
         """
         Test notification emails for a new comment.
