@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans with name=discussion.name group=discussion.group.name creator=discussion.creator.name %}Dear {{ user.name }},
+{% load i18n %}{% blocktrans with username=user.get_full_name name=discussion.name group=discussion.group.name creator=discussion.creator.name %}Dear {{ username }},
 
 A new discussion "{{ name }}" has been posted to the group {{ group }} by {{ creator }}:{% endblocktrans %}
 

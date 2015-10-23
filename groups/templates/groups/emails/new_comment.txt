@@ -1,4 +1,4 @@
-{% load i18n %}{% blocktrans with name=comment.discussion.name creator=comment.creator.name %}Dear {{ user.name }},
+{% load i18n %}{% blocktrans with username=user.get_full_name name=comment.discussion.name creator=comment.creator.name %}Dear {{ username }},
 
 A new comment has been posted to the discussion {{ name }} by {{ creator }}{% endblocktrans %}{% if comment.body %}:
 

@@ -39,6 +39,7 @@ class TestDiscussion(Python2AssertMixin, TestCase):
             'creator_id',
             'date_created',
             'subscribers',
+            'ignorers',
 
             # From BaseComment
             'comments',

@@ -125,10 +125,10 @@ class DiscussionCreate(FormView):
             send(
                 to=user.email,
                 subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
-                template_name='groups/emails/new_comment.txt',
+                template_name='groups/emails/new_discussion.txt',
                 context={
                     'discussion': discussion,
-                    'user': self.request.user,
+                    'user': user,
                 }
             )
 
@@ -156,7 +156,38 @@ class CommentPostView(CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.discussion = self.discussion
+        self.email_subscribers(form.instance)
         return super(CommentPostView, self).form_valid(form)
+
+    def users_to_notify(self, comment):
+        """
+        Return subscribers to the comment's discussion or its parent group.
+
+        Exclude anyone who's explicitly ignored this discussion, and the person who
+        posted the comment.
+        """
+        discussion = comment.discussion
+        discussion_subscribers = discussion.subscribers.all()
+        group_subscribers = discussion.group.watchers.exclude(
+            ignored_discussions=discussion
+        )
+
+        all_subscribers = discussion_subscribers | group_subscribers
+        return all_subscribers.exclude(pk=comment.user.pk)
+
+    def email_subscribers(self, comment):
+        """Notify all subscribers to the discussion or its group, except the poster."""
+        users = self.users_to_notify(comment)
+        for user in users:
+            send(
+                to=user.email,
+                subject=NEW_COMMENT_SUBJECT.format(discussion=comment.discussion.name),
+                template_name='groups/emails/new_comment.txt',
+                context={
+                    'comment': comment,
+                    'user': user,
+                }
+            )
 
 
 class DiscussionThread(CommentPostView):

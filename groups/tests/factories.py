@@ -7,6 +7,8 @@ from .. import models
 
 class UserFactory(factory.DjangoModelFactory):
     username = factory.Sequence('user{}'.format)
+    first_name = factory.Sequence('Leeroy{}'.format)
+    last_name = factory.Sequence('Jenkins{}'.format)
     email = factory.Sequence('email{}@example.com'.format)
     is_active = True
 
@@ -18,6 +20,12 @@ class UserFactory(factory.DjangoModelFactory):
         # By using this method, password can never be set to `None`!
         self.raw_password = 'password' if extracted is None else extracted
         self.set_password(self.raw_password)
+        if create:
+            self.save()
+
+    @factory.post_generation
+    def name(self, create, extracted, **kwargs):
+        self.name = self.username if extracted is None else extracted
         if create:
             self.save()
 
