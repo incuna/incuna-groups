@@ -142,11 +142,11 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         * minus the user who posted the comment.
         """
         (
-            group_subscriber,
-            discussion_subscriber,
-            discussion_ignorer,
-            comment_poster,
-            unrelated_user,
+            group_subscriber,  # Will be notified.
+            discussion_subscriber,  # Will also be notified.
+            discussion_ignorer,  # A group subscriber, but ignores the discussion = no.
+            comment_poster,  # The poster isn't notified regardless of subscriptions.
+            unrelated_user,  # Not subscribed at all = no notifications.
         ) = factories.UserFactory.create_batch(5)
 
         group = factories.GroupFactory.create()
@@ -156,6 +156,7 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
             discussion=discussion,
         )
 
+        # Set up the various subscription preferences as described above.
         group.watchers = [group_subscriber, discussion_ignorer, comment_poster]
         discussion.subscribers = [discussion_subscriber, comment_poster]
         discussion.ignorers = [discussion_ignorer]
