@@ -247,7 +247,10 @@ class TestDiscussionCreate(RequestTestCase):
 
         request = self.create_request('post', user=user, data=data)
         view = self.view_class.as_view()
-        response = view(request, pk=group.pk)
+
+        method_path = 'groups.views.DiscussionCreate.email_subscribers'
+        with mock.patch(method_path) as email_subscribers:
+            response = view(request, pk=group.pk)
 
         discussion = models.Discussion.objects.get()  # will explode if it doesn't exist
         self.assertEqual(discussion.creator, user)
@@ -257,6 +260,8 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertEqual(response.status_code, 302)
         expected = reverse('discussion-thread', kwargs={'pk': discussion.pk})
         self.assertEqual(response['Location'], expected)
+
+        self.assertEqual(email_subscribers.call_count, 1)
 
     def test_email_subscribers(self):
         """
@@ -281,9 +286,9 @@ class TestDiscussionCreate(RequestTestCase):
         email = mail.outbox[0]
         self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
         self.assertEqual(email.to, [subscriber.email])
-        self.assertIn(email.body, 'A new discussion {}'.format(new_discussion.name))
-        self.assertIn(email.body, subscriber.name)
-        self.assertIn(email.body, new_discussion.comments.first().body)
+        self.assertIn('A new discussion {}'.format(new_discussion.name), email.body)
+        self.assertIn(subscriber.name, email.body)
+        self.assertIn(new_discussion.comments.first().body, email.body)
 
 
 class TestDiscussionSubscribe(RequestTestCase):
