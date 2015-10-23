@@ -1,3 +1,10 @@
+Upcoming
+------
+
+* **Drop Django 1.7 support.**
+* Add email notifications for users subscribed to groups and discussions when new
+  discussions or comments appear in those.
+
 v0.6.0
 ------
 
