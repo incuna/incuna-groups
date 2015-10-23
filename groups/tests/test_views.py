@@ -161,7 +161,7 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         discussion.subscribers = [discussion_subscriber, comment_poster]
         discussion.ignorers = [discussion_ignorer]
 
-        users = self.view_obj.users_to_notify(comment)
+        users = views.CommentPostView.users_to_notify(comment)
         self.assertEqual(set(users), {group_subscriber, discussion_subscriber})
 
     def test_email_subscribers(self):

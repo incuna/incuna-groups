@@ -159,7 +159,8 @@ class CommentPostView(CreateView):
         self.email_subscribers(form.instance)
         return super(CommentPostView, self).form_valid(form)
 
-    def users_to_notify(self, comment):
+    @staticmethod
+    def users_to_notify(comment):
         """
         Return subscribers to the comment's discussion or its parent group.
 
