@@ -124,6 +124,60 @@ class TestBaseComment(Python2AssertMixin, TestCase):
         comment.delete_state()
         self.assertTrue(comment.is_deleted())
 
+    def test_subscribers_discussion(self):
+        """The users subscribed to the discussion are included."""
+        comment = factories.BaseCommentFactory.create()
+        subscriber, other = factories.UserFactory.create_batch(2)
+        comment.discussion.subscribers.add(subscriber)
+
+        subscribers = comment.subscribers()
+
+        self.assertIn(subscriber, subscribers)
+        self.assertNotIn(other, subscribers)
+
+    def test_subscribers_group(self):
+        """The users watching the group are included."""
+        comment = factories.BaseCommentFactory.create()
+        subscriber, other = factories.UserFactory.create_batch(2)
+        comment.discussion.group.watchers.add(subscriber)
+
+        subscribers = comment.subscribers()
+
+        self.assertIn(subscriber, subscribers)
+        self.assertNotIn(other, subscribers)
+
+    def test_subscribers_comment_poster(self):
+        """The comment poster is not included even if subscribed."""
+        comment = factories.BaseCommentFactory.create()
+        comment.discussion.subscribers.add(comment.user)
+        comment.discussion.group.watchers.add(comment.user)
+
+        subscribers = comment.subscribers()
+
+        self.assertNotIn(comment.user, subscribers)
+
+    def test_subscribers_ignored_discussion(self):
+        """A group watcher is excluded if they ignore the discussion."""
+        comment = factories.BaseCommentFactory.create()
+        ignorer = factories.UserFactory.create()
+        comment.discussion.ignorers.add(ignorer)
+        comment.discussion.group.watchers.add(ignorer)
+
+        subscribers = comment.subscribers()
+
+        self.assertNotIn(ignorer, subscribers)
+
+    def test_subscribers_duplicate(self):
+        """A subscriber to discussion and group is not counted twice."""
+        comment = factories.BaseCommentFactory.create()
+        subscriber, other = factories.UserFactory.create_batch(2)
+        comment.discussion.subscribers.add(subscriber)
+        comment.discussion.group.watchers.add(subscriber)
+
+        subscribers = comment.subscribers()
+
+        self.assertCountEqual([subscriber], subscribers)
+
 
 class TestTextComment(Python2AssertMixin, TestCase):
     def test_fields(self):
