@@ -161,6 +161,20 @@ class BaseComment(PolymorphicModel):
     def is_deleted(self):
         return self.state == self.STATE_DELETED
 
+    def subscribers(self):
+        """
+        All users subscribed to self.discussion or its parent group.
+
+        Users who have explicitly ignored the discussion and the comment
+        poster are excluded.
+        """
+        discussion_subscribers = self.discussion.subscribers.all()
+        group_subscribers = self.discussion.group.watchers.exclude(
+            ignored_discussions=self.discussion,
+        )
+        subscribers = discussion_subscribers | group_subscribers
+        return subscribers.exclude(pk=self.user.pk)
+
 
 class TextComment(BaseComment):
     """A normal comment consisting only of some text."""

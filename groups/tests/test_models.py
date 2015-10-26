@@ -125,6 +125,58 @@ class TestBaseComment(Python2AssertMixin, TestCase):
         self.assertTrue(comment.is_deleted())
 
 
+class TestBaseCommentSubscribers(Python2AssertMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.comment = factories.BaseCommentFactory.create()
+        cls.subscriber, cls.other = factories.UserFactory.create_batch(2)
+
+    def test_subscribers_discussion(self):
+        """The users subscribed to the discussion are included."""
+        self.comment.discussion.subscribers.add(self.subscriber)
+
+        subscribers = self.comment.subscribers()
+
+        self.assertIn(self.subscriber, subscribers)
+        self.assertNotIn(self.other, subscribers)
+
+    def test_subscribers_group(self):
+        """The users watching the group are included."""
+        self.comment.discussion.group.watchers.add(self.subscriber)
+
+        subscribers = self.comment.subscribers()
+
+        self.assertIn(self.subscriber, subscribers)
+        self.assertNotIn(self.other, subscribers)
+
+    def test_subscribers_comment_poster(self):
+        """The comment poster is not included even if subscribed."""
+        self.comment.discussion.subscribers.add(self.comment.user)
+        self.comment.discussion.group.watchers.add(self.comment.user)
+
+        subscribers = self.comment.subscribers()
+
+        self.assertNotIn(self.comment.user, subscribers)
+
+    def test_subscribers_ignored_discussion(self):
+        """A group watcher is excluded if they ignore the discussion."""
+        self.comment.discussion.ignorers.add(self.other)
+        self.comment.discussion.group.watchers.add(self.other)
+
+        subscribers = self.comment.subscribers()
+
+        self.assertNotIn(self.other, subscribers)
+
+    def test_subscribers_duplicate(self):
+        """A subscriber to discussion and group is not counted twice."""
+        self.comment.discussion.subscribers.add(self.subscriber)
+        self.comment.discussion.group.watchers.add(self.subscriber)
+
+        subscribers = self.comment.subscribers()
+
+        self.assertCountEqual([self.subscriber], subscribers)
+
+
 class TestTextComment(Python2AssertMixin, TestCase):
     def test_fields(self):
         fields = models.TextComment._meta.get_all_field_names()
