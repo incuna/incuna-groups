@@ -1,0 +1,7 @@
+{% load i18n %}{% blocktrans with username=user.get_full_name name=discussion.name group=discussion.group.name creator=discussion.creator.name %}Dear {{ username }},
+
+A new discussion "{{ name }}" has been posted to the group {{ group }} by {{ creator }}{% endblocktrans %}{% if discussion.comments.first.body %}:
+
+{{ discussion.comments.first.body }}
+
+{% else %}.{% endif %}{% blocktrans with url=discussion.get_absolute_url %}Click here to reply online: {{ site.domain }}{{ url }}{% endblocktrans %}

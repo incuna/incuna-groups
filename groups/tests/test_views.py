@@ -6,6 +6,7 @@ except ImportError:
     import mock
 
 import pytz
+from django.core import mail
 from django.core.urlresolvers import reverse
 from django_webtest import WebTest
 from incuna_test_utils.compat import Python2AssertMixin
@@ -131,6 +132,60 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         self.assertEqual(form.instance.user, self.request.user)
         self.assertEqual(form.instance.discussion, self.discussion)
 
+    def test_users_to_notify(self):
+        """
+        Test that users_to_notify picks the right users.
+
+        * All subscribers to the discussion,
+        * plus all subscribers to the discussion's parent group,
+        * minus everyone who ignored the discussion,
+        * minus the user who posted the comment.
+        """
+        (
+            group_subscriber,  # Will be notified.
+            discussion_subscriber,  # Will also be notified.
+            discussion_ignorer,  # A group subscriber, but ignores the discussion = no.
+            comment_poster,  # The poster isn't notified regardless of subscriptions.
+            unrelated_user,  # Not subscribed at all = no notifications.
+        ) = factories.UserFactory.create_batch(5)
+
+        group = factories.GroupFactory.create()
+        discussion = factories.DiscussionFactory.create(group=group)
+        comment = factories.BaseCommentFactory.create(
+            user=comment_poster,
+            discussion=discussion,
+        )
+
+        # Set up the various subscription preferences as described above.
+        group.watchers = [group_subscriber, discussion_ignorer, comment_poster]
+        discussion.subscribers = [discussion_subscriber, comment_poster]
+        discussion.ignorers = [discussion_ignorer]
+
+        users = views.CommentPostView.users_to_notify(comment)
+        self.assertEqual(set(users), {group_subscriber, discussion_subscriber})
+
+    def test_email_subscribers(self):
+        """
+        Test notification emails for a new comment.
+
+        The users_to_notify logic is tested above, so we can mock it here.
+        """
+        subscriber = factories.UserFactory.create()
+        discussion = factories.DiscussionFactory.create()
+        comment = factories.TextCommentFactory.create(discussion=discussion)
+
+        method_path = 'groups.views.CommentPostView.users_to_notify'
+        with mock.patch(method_path, return_value=[subscriber]):
+            self.view_obj.email_subscribers(comment)
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, 'New comment on {}'.format(discussion.name))
+        self.assertEqual(email.to, [subscriber.email])
+        self.assertIn('A new comment has been posted', email.body)
+        self.assertIn(subscriber.get_full_name(), email.body)
+        self.assertIn(comment.body, email.body)
+
 
 class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
     view_class = views.DiscussionThread
@@ -246,7 +301,10 @@ class TestDiscussionCreate(RequestTestCase):
 
         request = self.create_request('post', user=user, data=data)
         view = self.view_class.as_view()
-        response = view(request, pk=group.pk)
+
+        method_path = 'groups.views.DiscussionCreate.email_subscribers'
+        with mock.patch(method_path) as email_subscribers:
+            response = view(request, pk=group.pk)
 
         discussion = models.Discussion.objects.get()  # will explode if it doesn't exist
         self.assertEqual(discussion.creator, user)
@@ -256,6 +314,36 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertEqual(response.status_code, 302)
         expected = reverse('discussion-thread', kwargs={'pk': discussion.pk})
         self.assertEqual(response['Location'], expected)
+
+        self.assertEqual(email_subscribers.call_count, 1)
+
+    def test_email_subscribers(self):
+        """
+        Test notification emails for a new discussion.
+
+        Assert that subscribers to a group are emailed correctly when a new discussion
+        is posted there, apart from the discussion's creator.
+        """
+        group = factories.GroupFactory.create()
+        subscriber = factories.UserFactory.create()
+        creator = factories.UserFactory.create()
+        group.subscribe(subscriber)
+        group.subscribe(creator)
+
+        new_discussion = factories.DiscussionFactory.create(creator=creator, group=group)
+        first_comment = factories.TextCommentFactory.create(discussion=new_discussion)
+
+        view = self.view_class()
+        view.request = self.create_request(user=creator)
+        view.email_subscribers(new_discussion)
+
+        self.assertEqual(len(mail.outbox), 1)
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
+        self.assertEqual(email.to, [subscriber.email])
+        self.assertIn('A new discussion "{}"'.format(new_discussion.name), email.body)
+        self.assertIn(subscriber.get_full_name(), email.body)
+        self.assertIn(first_comment.body, email.body)
 
 
 class TestDiscussionSubscribe(RequestTestCase):

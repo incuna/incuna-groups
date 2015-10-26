@@ -8,6 +8,7 @@ factory_boy==2.4.1
 flake8==2.4.0
 flake8-docstrings==0.2.1.post1
 flake8-import-order==0.5.3
+incuna-mail==3.0.0
 incuna-test-utils==6.2.7
 Pillow==2.7.0
 psycopg2==2.6.0

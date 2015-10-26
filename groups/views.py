@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -5,8 +6,13 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
+from incuna_mail import send
 
 from . import forms, models
+
+
+NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
+NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
 
 class GroupList(ListView):
@@ -109,7 +115,22 @@ class DiscussionCreate(FormView):
             user=user,
         )
         self.pk = discussion.pk
+        self.email_subscribers(discussion)
         return super(DiscussionCreate, self).form_valid(form)
+
+    def email_subscribers(self, discussion):
+        """Notify all subscribers to the discussion's parent group, except its creator."""
+        users = discussion.group.watchers.exclude(pk=self.request.user.pk)
+        for user in users:
+            send(
+                to=user.email,
+                subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
+                template_name='groups/emails/new_discussion.txt',
+                context={
+                    'discussion': discussion,
+                    'user': user,
+                }
+            )
 
 
 class CommentPostView(CreateView):
@@ -135,7 +156,39 @@ class CommentPostView(CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.discussion = self.discussion
+        self.email_subscribers(form.instance)
         return super(CommentPostView, self).form_valid(form)
+
+    @staticmethod
+    def users_to_notify(comment):
+        """
+        Return subscribers to the comment's discussion or its parent group.
+
+        Exclude anyone who's explicitly ignored this discussion, and the person who
+        posted the comment.
+        """
+        discussion = comment.discussion
+        discussion_subscribers = discussion.subscribers.all()
+        group_subscribers = discussion.group.watchers.exclude(
+            ignored_discussions=discussion
+        )
+
+        all_subscribers = discussion_subscribers | group_subscribers
+        return all_subscribers.exclude(pk=comment.user.pk)
+
+    def email_subscribers(self, comment):
+        """Notify all subscribers to the discussion or its group, except the poster."""
+        users = self.users_to_notify(comment)
+        for user in users:
+            send(
+                to=user.email,
+                subject=NEW_COMMENT_SUBJECT.format(discussion=comment.discussion.name),
+                template_name='groups/emails/new_comment.txt',
+                context={
+                    'comment': comment,
+                    'user': user,
+                }
+            )
 
 
 class DiscussionThread(CommentPostView):

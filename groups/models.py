@@ -59,6 +59,10 @@ class Discussion(models.Model):
         settings.AUTH_USER_MODEL,
         related_name='subscribed_discussions',
     )
+    ignorers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='ignored_discussions',
+    )
 
     objects = managers.DiscussionQuerySet.as_manager()
 
