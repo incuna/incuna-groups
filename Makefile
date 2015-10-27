@@ -5,6 +5,9 @@ help:
 	@echo "usage:"
 	@echo "	make release -- release to Incuna's pypi"
 	@echo "	make test -- run the tests, including flake8 & coverage"
+	@echo " make runserver -- launch a basic local server with Django admin access"
+	@echo " make migrations -- create any missing migrations"
+	@echo " make migrate -- create the database if necessary, then run existing migrations"
 
 release:
 	@(git diff --quiet && git diff --cached --quiet) || (echo "You have uncommitted changes - stash or commit your changes"; exit 1)
@@ -12,6 +15,18 @@ release:
 	@python setup.py register sdist bdist_wheel upload
 
 test:
-	@coverage run groups/tests/run.py --verbosity=${VERBOSITY}
+	@coverage run test_project/manage.py test groups --verbosity=${VERBOSITY}
 	@flake8 .
-	@coverage report --fail-under=100
+	@DJANGO_SETTINGS_MODULE=test_project.settings coverage report
+
+runserver:
+	@test_project/manage.py runserver
+
+migrations:
+	@test_project/manage.py makemigrations
+
+migrate:
+	@if [ `psql -t -c "SELECT COUNT(1) FROM pg_catalog.pg_database WHERE datname = 'groups'"` -eq 0 ]; then \
+		psql -c "CREATE DATABASE groups"; \
+	fi
+	@test_project/manage.py migrate
