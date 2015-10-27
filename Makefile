@@ -17,7 +17,7 @@ release:
 test:
 	@coverage run test_project/manage.py test groups --verbosity=${VERBOSITY}
 	@flake8 .
-	@DJANGO_SETTINGS_MODULE=test_project.settings coverage report --fail-under=100
+	@DJANGO_SETTINGS_MODULE=test_project.settings coverage report
 
 runserver:
 	@test_project/manage.py runserver
