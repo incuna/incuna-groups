@@ -5,7 +5,8 @@ from .models import Discussion, Group
 
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
-    filter_horizontal = ('moderators', 'watchers', 'members_if_private')
+    filter_horizontal = ('moderators', 'members_if_private')
+    exclude = ('watchers',)
 
     class Meta:
         model = Group
@@ -13,7 +14,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 @admin.register(Discussion)
 class DiscussionAdmin(admin.ModelAdmin):
-    filter_horizontal = ('subscribers', 'ignorers')
+    exclude = ('subscribers', 'ignorers')
 
     class Meta:
         model = Discussion

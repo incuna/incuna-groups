@@ -21,14 +21,17 @@ class Group(models.Model):
     moderators = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='moderated_groups',
+        blank=True,
     )
     watchers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='watched_groups',
+        blank=True,
     )
     members_if_private = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='private_groups_joined',
+        blank=True,
     )
 
     objects = managers.GroupQuerySet.as_manager()
@@ -61,10 +64,12 @@ class Discussion(models.Model):
     subscribers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='subscribed_discussions',
+        blank=True,
     )
     ignorers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='ignored_discussions',
+        blank=True,
     )
 
     objects = managers.DiscussionQuerySet.as_manager()
