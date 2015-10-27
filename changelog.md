@@ -1,3 +1,8 @@
+v1.0.1
+------
+
+* Add `__str__` methods to `Group`, `Discussion` and `BaseComment`.
+
 v1.0.0
 ------
 
