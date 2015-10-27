@@ -1,3 +1,10 @@
+Upcoming
+------
+
+* Hide `subscribers`, `ignorers` and `watchers` from the admin, since they aren't meant
+  to be editable there.
+* Make all the `ManyToManyFields` non-required.
+
 v1.0.2
 ------
 
