@@ -136,7 +136,10 @@ class TestBaseComment(Python2AssertMixin, TestCase):
         comment = factories.TextCommentFactory.create()
         self.assertEqual(
             str(comment),
-            'Comment by {}'.format(comment.user.get_full_name())
+            '{} on Discussion #{}'.format(
+                'TextComment',
+                comment.discussion_id
+            )
         )
 
 

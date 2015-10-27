@@ -168,7 +168,10 @@ class BaseComment(PolymorphicModel):
         return self.state == self.STATE_DELETED
 
     def __str__(self):
-        return 'Comment by {}'.format(self.user.get_full_name())
+        return '{} on Discussion #{}'.format(
+            self.__class__.__name__,
+            self.discussion_id
+        )
 
 
 class TextComment(BaseComment):
