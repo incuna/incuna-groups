@@ -1,3 +1,9 @@
+Upcoming
+------
+
+* Add a test project for easier creation of migrations and testing the admin, as well as
+  to run the tests themselves.
+
 v1.0.2
 ------
 
