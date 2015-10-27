@@ -1,4 +1,4 @@
-Upcoming
+v1.0.2
 ------
 
 * Use `filter_horizontal` on many-to-many fields in the admin.
