@@ -45,6 +45,9 @@ class Group(models.Model):
     def is_subscribed(self, user):
         return self.watchers.filter(id=user.pk).exists()
 
+    def __str__(self):
+        return self.name
+
 
 class Discussion(models.Model):
     """A model for a discussion thread in a group."""
@@ -86,6 +89,9 @@ class Discussion(models.Model):
 
     def is_subscribed(self, user):
         return self.subscribers.filter(id=user.pk).exists()
+
+    def __str__(self):
+        return self.name
 
 
 class BaseComment(PolymorphicModel):
@@ -160,6 +166,12 @@ class BaseComment(PolymorphicModel):
 
     def is_deleted(self):
         return self.state == self.STATE_DELETED
+
+    def __str__(self):
+        return '{} on Discussion #{}'.format(
+            self.__class__.__name__,
+            self.discussion_id
+        )
 
 
 class TextComment(BaseComment):

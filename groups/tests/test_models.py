@@ -26,6 +26,10 @@ class TestGroup(Python2AssertMixin, TestCase):
         expected = '/groups/{}/'.format(group.pk)
         self.assertEqual(group.get_absolute_url(), expected)
 
+    def test_str(self):
+        group = factories.GroupFactory.create()
+        self.assertEqual(str(group), group.name)
+
 
 class TestDiscussion(Python2AssertMixin, TestCase):
     def test_fields(self):
@@ -57,6 +61,10 @@ class TestDiscussion(Python2AssertMixin, TestCase):
         discussions = models.Discussion.objects.all()
         expected = [discussion_two, discussion_one]
         self.assertSequenceEqual(discussions, expected)
+
+    def test_str(self):
+        discussion = factories.DiscussionFactory.create()
+        self.assertEqual(str(discussion), discussion.name)
 
 
 class TestBaseComment(Python2AssertMixin, TestCase):
@@ -123,6 +131,16 @@ class TestBaseComment(Python2AssertMixin, TestCase):
         self.assertFalse(comment.is_deleted())
         comment.delete_state()
         self.assertTrue(comment.is_deleted())
+
+    def test_str(self):
+        comment = factories.TextCommentFactory.create()
+        self.assertEqual(
+            str(comment),
+            '{} on Discussion #{}'.format(
+                'TextComment',
+                comment.discussion_id
+            )
+        )
 
 
 class TestTextComment(Python2AssertMixin, TestCase):
