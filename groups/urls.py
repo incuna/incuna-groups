@@ -46,4 +46,9 @@ urlpatterns = [
             name='comment-delete',
         ),
     ])),
+    url(
+        r'^reply/',
+        views.CommentPostByEmail.as_view(),
+        name='comment-reply',
+    ),
 ]

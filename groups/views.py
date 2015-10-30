@@ -1,4 +1,5 @@
 import json
+import re
 
 from django.apps import apps
 from django.contrib import messages
@@ -6,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import signing
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, FormView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
@@ -304,10 +305,22 @@ class CommentPostByEmail(CommentEmailMixin, View):
             'user': get_object_or_404(get_user_model(), pk=data['user_pk'])
         }
 
+    @staticmethod
+    def extract_uuid_from_email(email, request):
+        """Turn `reply-{uuid}@domain.com` into just `uuid`."""
+        uuid_regex = r'(?P<uuid>[\w\d\-_:]+)'
+        regex = r'reply-{}@{}'.format(uuid_regex, get_current_site(request))
+        match = re.compile(regex).match(email)
+        if not match:
+            raise Http404
+
+        return match.group('uuid')
+
     def post(self, request, *args, **kwargs):
         """Create a new comment to self.pk."""
         message = json.loads(request.body.decode())['message']
-        target = self.get_uuid_data(self.uuid)
+        uuid = self.extract_uuid_from_email(message['recipient'], request)
+        target = self.get_uuid_data(uuid)
 
         content = message['stripped-text']
         comment = models.TextComment.objects.create(

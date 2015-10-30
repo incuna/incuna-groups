@@ -478,6 +478,11 @@ class TestCommentDelete(RequestTestCase):
 class TestCommentPostByEmail(RequestTestCase):
     view_class = views.CommentPostByEmail
 
+    # Some method paths for mocking out helpers.
+    extract_method_path = 'groups.views.CommentPostByEmail.extract_uuid_from_email'
+    uuid_method_path = 'groups.views.CommentPostByEmail.get_uuid_data'
+    email_method_path = 'groups.views.CommentEmailMixin.email_subscribers'
+
     def generate_uuid(self, discussion_pk, user_pk):
         """Generate a UUID in the same way as a discussion."""
         data = {'discussion_pk': discussion_pk, 'user_pk': user_pk}
@@ -506,29 +511,55 @@ class TestCommentPostByEmail(RequestTestCase):
         with self.assertRaises(Http404):
             self.view_class.get_uuid_data(uuid)
 
+    def test_extract_uuid_from_email(self):
+        """Assert that `reply-{uuid}@{domain}` becomes `uuid`."""
+        uuid = 'I-aM:an_UU1D'
+        request = self.create_request()
+        domain = get_current_site(request).domain
+        email = 'reply-{}@{}'.format(uuid, domain)
+
+        extracted_uuid = self.view_class.extract_uuid_from_email(email, request)
+        self.assertEqual(extracted_uuid, uuid)
+
+    def test_extract_uuid_failure(self):
+        """The method throws a 404 when it fails."""
+        with self.assertRaises(Http404):
+            self.view_class.extract_uuid_from_email(
+                'will-this-work@example.com',
+                self.create_request()
+            )
+
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
         user = discussion.creator
         uuid_data = {'discussion': discussion, 'user': user}
 
         message_body = 'Email replying is so straightforward and fun'
-        email_json = json.dumps({'message': {'stripped-text': message_body}})
+        request_data = {
+            'message': {
+                'stripped-text': message_body,
+                'recipient': 'this is needed, but mocked out',
+            }
+        }
 
         request = self.create_request(
             method='post',
-            data=email_json,
+            data=json.dumps(request_data),
             content_type='application/json',
         )
         view = self.view_class.as_view()
 
-        # Post to the view and mock out the helper methods (they're tested elsewhere).
-        uuid_method_path = 'groups.views.CommentPostByEmail.get_uuid_data'
-        email_method_path = 'groups.views.CommentEmailMixin.email_subscribers'
-        with mock.patch(uuid_method_path, return_value=uuid_data):
-            with mock.patch(email_method_path) as email_subscribers:
-                view(request, uuid='use of this is mocked out')
+        with mock.patch(self.extract_method_path, return_value='uuid') as extract_uuid:
+            with mock.patch(self.uuid_method_path, return_value=uuid_data):
+                with mock.patch(self.email_method_path) as email_subscribers:
+                    view(request, uuid='use of this is mocked out')
 
-        # Assert that a comment was created and subscribers were emailed
+        # Assert that a comment was created, subscribers were emailed, and the
+        # recipient field in the request data was respected.
         comment = models.TextComment.objects.get()
         self.assertEqual(comment.body, message_body)
-        self.assertEqual(email_subscribers.call_count, 1)
+        email_subscribers.assert_called_once_with(comment)
+        extract_uuid.assert_called_once_with(
+            request_data['message']['recipient'],
+            request
+        )
