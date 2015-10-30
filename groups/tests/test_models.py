@@ -1,3 +1,4 @@
+from django.core import signing
 from django.test import TestCase
 from incuna_test_utils.compat import Python2AssertMixin
 
@@ -65,6 +66,17 @@ class TestDiscussion(Python2AssertMixin, TestCase):
     def test_str(self):
         discussion = factories.DiscussionFactory.create()
         self.assertEqual(str(discussion), discussion.name)
+
+    def test_generate_reply_uuid(self):
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        expected_data = {
+            'discussion_pk': discussion.pk,
+            'user_pk': user.pk,
+        }
+
+        signed_data = discussion.generate_reply_uuid(user)
+        self.assertEqual(signing.loads(signed_data), expected_data)
 
 
 class TestBaseComment(Python2AssertMixin, TestCase):
