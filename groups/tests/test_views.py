@@ -20,10 +20,10 @@ class TestGetReplyAddress(RequestTestCase):
         discussion = factories.DiscussionFactory.create()
 
         domain = get_current_site(request).domain
-        uuid_regex = r'[\d\w\-_:]*'
+        uuid_regex = r'[\d\w\-_:]*'  # A string of alphanumerics, `-`, `_`, and/or `:`
         self.assertRegex(
             views.get_reply_address(discussion, request.user, request),
-            r'reply-{}@{}'.format(uuid_regex, domain)
+            r'reply-{uuid}@{domain}'.format(uuid=uuid_regex, domain=domain)
         )
 
 
