@@ -20,7 +20,7 @@ from .utils import RequestTestCase
 from .. import models, views
 
 
-class TestGetReplyAddress(RequestTestCase):
+class TestGetReplyAddress(Python2AssertMixin, RequestTestCase):
     def test_get_reply_address(self):
         """Assert that the method returns `reply-{uuid}@{domain}`."""
         request = self.create_request()
