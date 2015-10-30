@@ -1,6 +1,10 @@
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 import datetime
 import json
-from unittest import mock
 
 import pytz
 from django.contrib.sites.shortcuts import get_current_site
