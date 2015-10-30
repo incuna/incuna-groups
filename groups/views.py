@@ -1,5 +1,6 @@
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -10,9 +11,14 @@ from incuna_mail import send
 
 from . import forms, models
 
-
 NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
 NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
+
+
+def get_reply_address(discussion, user, request):
+    uuid = discussion.generate_reply_uuid(user)
+    site = get_current_site(request)
+    return 'reply-{}@{}'.format(uuid, site)
 
 
 class GroupList(ListView):

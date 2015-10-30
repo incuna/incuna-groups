@@ -1,11 +1,8 @@
 import datetime
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 import pytz
+from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
 from django.core.urlresolvers import reverse
 from django_webtest import WebTest
@@ -14,6 +11,20 @@ from incuna_test_utils.compat import Python2AssertMixin
 from . import factories
 from .utils import RequestTestCase
 from .. import models, views
+
+
+class TestGetReplyAddress(RequestTestCase):
+    def test_get_reply_address(self):
+        """Assert that the method returns `reply-{uuid}@{domain}`."""
+        request = self.create_request()
+        discussion = factories.DiscussionFactory.create()
+
+        domain = get_current_site(request).domain
+        uuid_regex = r'[\d\w\-_:]*'
+        self.assertRegex(
+            views.get_reply_address(discussion, request.user, request),
+            r'reply-{}@{}'.format(uuid_regex, domain)
+        )
 
 
 class TestGroupList(Python2AssertMixin, RequestTestCase):
