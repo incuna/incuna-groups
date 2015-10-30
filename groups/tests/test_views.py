@@ -179,20 +179,25 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         """
         Test notification emails for a new comment.
 
-        The users_to_notify logic is tested above, so we can mock it here.
+        The users_to_notify logic is tested above, so we can mock it here.  Same with
+        get_reply_address, which is awkward to assert otherwise.
         """
         subscriber = factories.UserFactory.create()
         discussion = factories.DiscussionFactory.create()
         comment = factories.TextCommentFactory.create(discussion=discussion)
 
-        method_path = 'groups.views.CommentPostView.users_to_notify'
-        with mock.patch(method_path, return_value=[subscriber]):
-            self.view_obj.email_subscribers(comment)
+        reply_address = 'leeroy@jenkins.com'
+        users_method_path = 'groups.views.CommentPostView.users_to_notify'
+        address_method_path = 'groups.views.get_reply_address'
+        with mock.patch(users_method_path, return_value=[subscriber]):
+            with mock.patch(address_method_path, return_value=reply_address):
+                self.view_obj.email_subscribers(comment)
 
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertEqual(email.subject, 'New comment on {}'.format(discussion.name))
         self.assertEqual(email.to, [subscriber.email])
+        self.assertEqual(email.reply_to, [reply_address])
         self.assertIn('A new comment has been posted', email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(comment.body, email.body)
@@ -346,12 +351,17 @@ class TestDiscussionCreate(RequestTestCase):
 
         view = self.view_class()
         view.request = self.create_request(user=creator)
-        view.email_subscribers(new_discussion)
+
+        reply_address = 'leeroy@jenkins.com'
+        address_method_path = 'groups.views.get_reply_address'
+        with mock.patch(address_method_path, return_value=reply_address):
+            view.email_subscribers(new_discussion)
 
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
         self.assertEqual(email.to, [subscriber.email])
+        self.assertEqual(email.reply_to, [reply_address])
         self.assertIn('A new discussion "{}"'.format(new_discussion.name), email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(first_comment.body, email.body)

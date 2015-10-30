@@ -132,10 +132,11 @@ class DiscussionCreate(FormView):
                 to=user.email,
                 subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
                 template_name='groups/emails/new_discussion.txt',
+                reply_to=get_reply_address(discussion, user, self.request),
                 context={
                     'discussion': discussion,
                     'user': user,
-                }
+                },
             )
 
 
@@ -190,10 +191,11 @@ class CommentPostView(CreateView):
                 to=user.email,
                 subject=NEW_COMMENT_SUBJECT.format(discussion=comment.discussion.name),
                 template_name='groups/emails/new_comment.txt',
+                reply_to=get_reply_address(comment.discussion, user, self.request),
                 context={
                     'comment': comment,
                     'user': user,
-                }
+                },
             )
 
 
