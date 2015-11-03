@@ -1,18 +1,29 @@
+import json
+import re
+
 from django.apps import apps
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.sites.shortcuts import get_current_site
+from django.core import signing
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, FormView, ListView
+from django.views.generic import CreateView, FormView, ListView, View
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
 from incuna_mail import send
 
 from . import forms, models
 
-
 NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
 NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
+
+
+def get_reply_address(discussion, user, request):
+    uuid = discussion.generate_reply_uuid(user)
+    site = get_current_site(request)
+    return 'reply-{}@{}'.format(uuid, site)
 
 
 class GroupList(ListView):
@@ -126,39 +137,16 @@ class DiscussionCreate(FormView):
                 to=user.email,
                 subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
                 template_name='groups/emails/new_discussion.txt',
+                reply_to=get_reply_address(discussion, user, self.request),
                 context={
                     'discussion': discussion,
                     'user': user,
-                }
+                },
             )
 
 
-class CommentPostView(CreateView):
-    """
-    Base class for views that post a comment to a particular discussion.
-
-    Must be initialised with form_class and template_name attributes, as required by
-    the superclass, CreateView.
-    """
-    model = models.BaseComment
-
-    def dispatch(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
-        return super(CommentPostView, self).dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, *args, **kwargs):
-        """Attach the discussion and its existing comments to the context."""
-        context = super(CommentPostView, self).get_context_data(*args, **kwargs)
-        context['discussion'] = self.discussion
-        return context
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.discussion = self.discussion
-        self.email_subscribers(form.instance)
-        return super(CommentPostView, self).form_valid(form)
-
+class CommentEmailMixin:
+    """A mixin for CreateViews and similar that build comments."""
     @staticmethod
     def users_to_notify(comment):
         """
@@ -184,11 +172,39 @@ class CommentPostView(CreateView):
                 to=user.email,
                 subject=NEW_COMMENT_SUBJECT.format(discussion=comment.discussion.name),
                 template_name='groups/emails/new_comment.txt',
+                reply_to=get_reply_address(comment.discussion, user, self.request),
                 context={
                     'comment': comment,
                     'user': user,
-                }
+                },
             )
+
+
+class CommentPostView(CommentEmailMixin, CreateView):
+    """
+    Base class for views that post a comment to a particular discussion.
+
+    Must be initialised with form_class and template_name attributes, as required by
+    the superclass, CreateView.
+    """
+    model = models.BaseComment
+
+    def dispatch(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        self.discussion = models.Discussion.objects.select_related('group').get(pk=pk)
+        return super(CommentPostView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        """Attach the discussion and its existing comments to the context."""
+        context = super(CommentPostView, self).get_context_data(*args, **kwargs)
+        context['discussion'] = self.discussion
+        return context
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.discussion = self.discussion
+        self.email_subscribers(form.instance)
+        return super(CommentPostView, self).form_valid(form)
 
 
 class DiscussionThread(CommentPostView):
@@ -266,3 +282,50 @@ class CommentDelete(DeleteView):
 
     def get_success_url(self):
         return self.comment.get_absolute_url()
+
+
+class CommentPostByEmail(CommentEmailMixin, View):
+    """
+    Receive comments posted by email and create them in the database.
+
+    This view is intended to be linked to an endpoint that provides an URL kwarg
+    'uuid'.  This matches up to an EmailUUID object that stores the discussion and user
+    being used.
+    """
+    def dispatch(self, request, *args, **kwargs):
+        self.uuid = kwargs.pop('uuid')
+        return super(CommentPostByEmail, self).dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def get_uuid_data(uuid):
+        """Unwrap the discussion and user data in the UUID string."""
+        data = signing.loads(uuid)
+        return {
+            'discussion': get_object_or_404(models.Discussion, pk=data['discussion_pk']),
+            'user': get_object_or_404(get_user_model(), pk=data['user_pk'])
+        }
+
+    @staticmethod
+    def extract_uuid_from_email(email, request):
+        """Turn `reply-{uuid}@domain.com` into just `uuid`."""
+        uuid_regex = r'(?P<uuid>[\w\d\-_:]+)'
+        regex = r'reply-{}@{}'.format(uuid_regex, get_current_site(request))
+        match = re.compile(regex).match(email)
+        if not match:
+            raise Http404
+
+        return match.group('uuid')
+
+    def post(self, request, *args, **kwargs):
+        """Create a new comment to self.pk."""
+        message = json.loads(request.body.decode())['message']
+        uuid = self.extract_uuid_from_email(message['recipient'], request)
+        target = self.get_uuid_data(uuid)
+
+        content = message['stripped-text']
+        comment = models.TextComment.objects.create(
+            body=content,
+            user=target['user'],
+            discussion=target['discussion'],
+        )
+        self.email_subscribers(comment)

@@ -1,19 +1,37 @@
-import datetime
-
 try:
     from unittest import mock
 except ImportError:
     import mock
 
+import datetime
+import json
+
 import pytz
+from django.contrib.sites.shortcuts import get_current_site
 from django.core import mail
+from django.core import signing
 from django.core.urlresolvers import reverse
+from django.http import Http404
 from django_webtest import WebTest
 from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
 from .utils import RequestTestCase
 from .. import models, views
+
+
+class TestGetReplyAddress(Python2AssertMixin, RequestTestCase):
+    def test_get_reply_address(self):
+        """Assert that the method returns `reply-{uuid}@{domain}`."""
+        request = self.create_request()
+        discussion = factories.DiscussionFactory.create()
+
+        domain = get_current_site(request).domain
+        uuid_regex = r'[\d\w\-_:]*'  # A string of alphanumerics, `-`, `_`, and/or `:`
+        self.assertRegex(
+            views.get_reply_address(discussion, request.user, request),
+            r'reply-{uuid}@{domain}'.format(uuid=uuid_regex, domain=domain)
+        )
 
 
 class TestGroupList(Python2AssertMixin, RequestTestCase):
@@ -75,62 +93,27 @@ class TestGroupSubscribe(RequestTestCase):
 class TestGroupSubscribeIntegration(WebTest):
     def setUp(self):
         self.user = factories.UserFactory.create()
+        self.group = factories.GroupFactory.create()
+        self.group_url = reverse('group-detail', kwargs={'pk': self.group.pk})
 
     def test_subscribe_unsubscribe(self):
         """A user can subscribe and unsubscribe from a group."""
-        group = factories.GroupFactory.create()
-        group_url = reverse('group-detail', kwargs={'pk': group.pk})
-
-        # A user not yet subscribed sees a Subscribe button
-        form = self.app.get(group_url, user=self.user).form
-        submit_button = form.fields['subscribe-submit'][0]
-        self.assertEqual(submit_button._value, 'Subscribe')
-
         # A user is subscribed to the group if they click the button
-        form.submit()
-        self.assertIn(self.user, group.watchers.all())
-
-        # A subscribed user sees an Unsubscribe button
-        form = self.app.get(group_url, user=self.user).form
-        submit_button = form.fields['subscribe-submit'][0]
-        self.assertEqual(submit_button._value, 'Unsubscribe')
+        self.app.get(self.group_url, user=self.user).form.submit()
+        self.assertIn(self.user, self.group.watchers.all())
 
         # A user is unsubscribed from the group if they click the button
-        form.submit()
-        self.assertNotIn(self.user, group.watchers.all())
+        self.app.get(self.group_url, user=self.user).form.submit()
+        self.assertNotIn(self.user, self.group.watchers.all())
 
 
-class TestCommentPostView(Python2AssertMixin, RequestTestCase):
+class TestCommentEmailMixin(RequestTestCase):
     def setUp(self):
-        """Instantiate a minimal CommentPostView object."""
-        class TestView(views.CommentPostView):
-            """Set fields attribute to fulfil ModelFormMixin requirements."""
-            fields = ()
-
+        """Instantiate a minimal CommentEmailMixin object."""
         self.discussion = factories.DiscussionFactory.create()
         self.request = self.create_request()
-        self.view_obj = TestView(
-            request=self.request,
-            kwargs={'pk': self.discussion.pk},
-        )
-
-        self.view_obj.dispatch(self.request)
-
-    def test_dispatch(self):
-        """After dispatch (called during setUp) the discussion is attached to the view."""
-        self.assertEqual(self.view_obj.discussion, self.discussion)
-
-    def test_includes_discussion(self):
-        """Assert that the discussion is picked up and output."""
-        context_data = self.view_obj.get_context_data()
-        self.assertEqual(context_data['discussion'], self.discussion)
-
-    def test_form_valid(self):
-        """Assert that the request user and discussion are attached to the instance."""
-        form = mock.MagicMock(instance=mock.MagicMock())
-        self.view_obj.form_valid(form)
-        self.assertEqual(form.instance.user, self.request.user)
-        self.assertEqual(form.instance.discussion, self.discussion)
+        self.view_obj = views.CommentEmailMixin()
+        self.view_obj.request = self.request
 
     def test_users_to_notify(self):
         """
@@ -168,23 +151,61 @@ class TestCommentPostView(Python2AssertMixin, RequestTestCase):
         """
         Test notification emails for a new comment.
 
-        The users_to_notify logic is tested above, so we can mock it here.
+        The users_to_notify logic is tested above, so we can mock it here.  Same with
+        get_reply_address, which is awkward to assert otherwise.
         """
         subscriber = factories.UserFactory.create()
         discussion = factories.DiscussionFactory.create()
         comment = factories.TextCommentFactory.create(discussion=discussion)
 
-        method_path = 'groups.views.CommentPostView.users_to_notify'
-        with mock.patch(method_path, return_value=[subscriber]):
-            self.view_obj.email_subscribers(comment)
+        reply_address = 'leeroy@jenkins.com'
+        users_method_path = 'groups.views.CommentEmailMixin.users_to_notify'
+        address_method_path = 'groups.views.get_reply_address'
+        with mock.patch(users_method_path, return_value=[subscriber]):
+            with mock.patch(address_method_path, return_value=reply_address):
+                self.view_obj.email_subscribers(comment)
 
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertEqual(email.subject, 'New comment on {}'.format(discussion.name))
         self.assertEqual(email.to, [subscriber.email])
+        self.assertEqual(email.reply_to, [reply_address])
         self.assertIn('A new comment has been posted', email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(comment.body, email.body)
+
+
+class TestCommentPostView(Python2AssertMixin, RequestTestCase):
+    def setUp(self):
+        """Instantiate a minimal CommentPostView object."""
+        class TestView(views.CommentPostView):
+            """Set fields attribute to fulfil ModelFormMixin requirements."""
+            fields = ()
+
+        self.discussion = factories.DiscussionFactory.create()
+        self.request = self.create_request()
+        self.view_obj = TestView(
+            request=self.request,
+            kwargs={'pk': self.discussion.pk},
+        )
+
+        self.view_obj.dispatch(self.request)
+
+    def test_dispatch(self):
+        """After dispatch (called during setUp) the discussion is attached to the view."""
+        self.assertEqual(self.view_obj.discussion, self.discussion)
+
+    def test_includes_discussion(self):
+        """Assert that the discussion is picked up and output."""
+        context_data = self.view_obj.get_context_data()
+        self.assertEqual(context_data['discussion'], self.discussion)
+
+    def test_form_valid(self):
+        """Assert that the request user and discussion are attached to the instance."""
+        form = mock.MagicMock(instance=mock.MagicMock())
+        self.view_obj.form_valid(form)
+        self.assertEqual(form.instance.user, self.request.user)
+        self.assertEqual(form.instance.discussion, self.discussion)
 
 
 class TestDiscussionThread(Python2AssertMixin, RequestTestCase):
@@ -335,12 +356,17 @@ class TestDiscussionCreate(RequestTestCase):
 
         view = self.view_class()
         view.request = self.create_request(user=creator)
-        view.email_subscribers(new_discussion)
+
+        reply_address = 'leeroy@jenkins.com'
+        address_method_path = 'groups.views.get_reply_address'
+        with mock.patch(address_method_path, return_value=reply_address):
+            view.email_subscribers(new_discussion)
 
         self.assertEqual(len(mail.outbox), 1)
         email = mail.outbox[0]
         self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
         self.assertEqual(email.to, [subscriber.email])
+        self.assertEqual(email.reply_to, [reply_address])
         self.assertIn('A new discussion "{}"'.format(new_discussion.name), email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(first_comment.body, email.body)
@@ -440,3 +466,93 @@ class TestCommentDelete(RequestTestCase):
 
         expected = self.comment.get_absolute_url()
         self.assertEqual(view_obj.get_success_url(), expected)
+
+
+class TestCommentPostByEmail(RequestTestCase):
+    view_class = views.CommentPostByEmail
+
+    # Some method paths for mocking out helpers.
+    extract_method_path = 'groups.views.CommentPostByEmail.extract_uuid_from_email'
+    uuid_method_path = 'groups.views.CommentPostByEmail.get_uuid_data'
+    email_method_path = 'groups.views.CommentEmailMixin.email_subscribers'
+
+    def generate_uuid(self, discussion_pk, user_pk):
+        """Generate a UUID in the same way as a discussion."""
+        data = {'discussion_pk': discussion_pk, 'user_pk': user_pk}
+        return signing.dumps(data)
+
+    def test_get_uuid_data(self):
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        uuid = self.generate_uuid(discussion.pk, user.pk)
+
+        data = self.view_class.get_uuid_data(uuid)
+        expected_data = {'discussion': discussion, 'user': user}
+        self.assertEqual(data, expected_data)
+
+    def test_get_uuid_data_no_discussion(self):
+        user = factories.UserFactory.create()
+        uuid = self.generate_uuid(42, user.pk)
+
+        with self.assertRaises(Http404):
+            self.view_class.get_uuid_data(uuid)
+
+    def test_get_uuid_data_no_user(self):
+        discussion = factories.DiscussionFactory.create()
+        uuid = self.generate_uuid(discussion.pk, 42)
+
+        with self.assertRaises(Http404):
+            self.view_class.get_uuid_data(uuid)
+
+    def test_extract_uuid_from_email(self):
+        """Assert that `reply-{uuid}@{domain}` becomes `uuid`."""
+        uuid = 'I-aM:an_UU1D'
+        request = self.create_request()
+        domain = get_current_site(request).domain
+        email = 'reply-{}@{}'.format(uuid, domain)
+
+        extracted_uuid = self.view_class.extract_uuid_from_email(email, request)
+        self.assertEqual(extracted_uuid, uuid)
+
+    def test_extract_uuid_failure(self):
+        """The method throws a 404 when it fails."""
+        with self.assertRaises(Http404):
+            self.view_class.extract_uuid_from_email(
+                'will-this-work@example.com',
+                self.create_request()
+            )
+
+    def test_post(self):
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+        uuid_data = {'discussion': discussion, 'user': user}
+
+        message_body = 'Email replying is so straightforward and fun'
+        request_data = {
+            'message': {
+                'stripped-text': message_body,
+                'recipient': 'this is needed, but mocked out',
+            }
+        }
+
+        request = self.create_request(
+            method='post',
+            data=json.dumps(request_data),
+            content_type='application/json',
+        )
+        view = self.view_class.as_view()
+
+        with mock.patch(self.extract_method_path, return_value='uuid') as extract_uuid:
+            with mock.patch(self.uuid_method_path, return_value=uuid_data):
+                with mock.patch(self.email_method_path) as email_subscribers:
+                    view(request, uuid='use of this is mocked out')
+
+        # Assert that a comment was created, subscribers were emailed, and the
+        # recipient field in the request data was respected.
+        comment = models.TextComment.objects.get()
+        self.assertEqual(comment.body, message_body)
+        email_subscribers.assert_called_once_with(comment)
+        extract_uuid.assert_called_once_with(
+            request_data['message']['recipient'],
+            request
+        )

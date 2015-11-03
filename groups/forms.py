@@ -1,6 +1,6 @@
-from crispy_forms.bootstrap import FormActions
+from crispy_forms.bootstrap import FormActions, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
+from crispy_forms.layout import Layout
 from django import forms
 from django.core.urlresolvers import reverse_lazy
 
@@ -22,7 +22,7 @@ class BaseAddCommentForm(forms.ModelForm):
         helper.layout = Layout(
             'body',
             FormActions(
-                Submit('comment-submit', 'Post comment'),
+                StrictButton('Post comment', type='submit'),
             ),
         )
         return helper
@@ -44,7 +44,7 @@ class AddFileComment(BaseAddCommentForm):
         helper.layout = Layout(
             'file',
             FormActions(
-                Submit('comment-submit', 'Upload this file'),
+                StrictButton('Upload this file', type='submit'),
             ),
         )
         return helper
@@ -65,7 +65,7 @@ class DiscussionCreate(forms.Form):
         'name',
         'comment',
         FormActions(
-            Submit('submit', 'Create Discussion'),
+            StrictButton('Create Discussion', type='submit'),
         ),
     )
 
@@ -95,7 +95,7 @@ class SubscribeForm(forms.Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.layout = Layout(
             FormActions(
-                Submit('subscribe-submit', button_text),
+                StrictButton(button_text, type='submit'),
             ),
         )
         self.helper.form_action = reverse_lazy(url_name, kwargs={'pk': instance.pk})
