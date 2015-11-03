@@ -1,3 +1,5 @@
+from bs4 import BeautifulSoup
+from crispy_forms.utils import render_crispy_form
 from incuna_test_utils.compat import Python2AssertMixin
 from incuna_test_utils.factories.images import uploadable_file
 
@@ -26,6 +28,28 @@ class TestAddTextComment(Python2AssertMixin, RequestTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('body', form.errors)
 
+    def test_submit_not_input(self):
+        """The form does not have a submit <input>."""
+        rendered_form = render_crispy_form(self.form())
+
+        inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
+
+        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+
+        self.assertFalse(has_submit)
+
+    def test_submit_button(self):
+        """
+        The form has a submit <button>.
+
+        This allows for more flexibility in styling.
+        """
+        rendered_form = render_crispy_form(self.form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.get('type'), 'submit')
+
 
 class TestAddFileComment(Python2AssertMixin, RequestTestCase):
     form = forms.AddFileComment
@@ -46,6 +70,28 @@ class TestAddFileComment(Python2AssertMixin, RequestTestCase):
         form = self.form(data={})
         self.assertFalse(form.is_valid())
         self.assertIn('file', form.errors)
+
+    def test_submit_not_input(self):
+        """The form does not have a submit <input>."""
+        rendered_form = render_crispy_form(self.form())
+
+        inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
+
+        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+
+        self.assertFalse(has_submit)
+
+    def test_submit_button(self):
+        """
+        The form has a submit <button>.
+
+        This allows for more flexibility in styling.
+        """
+        rendered_form = render_crispy_form(self.form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.get('type'), 'submit')
 
 
 class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
@@ -69,6 +115,28 @@ class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
         form = self.form(data={})
         self.assertFalse(form.is_valid())
         self.assertIn('name', form.errors)
+
+    def test_submit_not_input(self):
+        """The form does not have a submit <input>."""
+        rendered_form = render_crispy_form(self.form())
+
+        inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
+
+        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+
+        self.assertFalse(has_submit)
+
+    def test_submit_button(self):
+        """
+        The form has a submit <button>.
+
+        This allows for more flexibility in styling.
+        """
+        rendered_form = render_crispy_form(self.form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.get('type'), 'submit')
 
 
 class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
@@ -102,6 +170,28 @@ class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
         form = self.get_form()
 
         self.assertFalse(form.initial['subscribe'])
+
+    def test_submit_not_input(self):
+        """The form does not have a submit <input>."""
+        rendered_form = render_crispy_form(self.get_form())
+
+        inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
+
+        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+
+        self.assertFalse(has_submit)
+
+    def test_submit_button(self):
+        """
+        The form has a submit <button>.
+
+        This allows for more flexibility in styling.
+        """
+        rendered_form = render_crispy_form(self.get_form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.get('type'), 'submit')
 
     def test_button_text_subscribe(self):
         """The button says 'Subscribe' when the user is not subscribed."""
