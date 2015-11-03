@@ -1,3 +1,8 @@
+v1.1.0
+------
+
+* Add the ability to reply to discussions by replying to notification emails.
+
 v1.0.3
 ------
 
