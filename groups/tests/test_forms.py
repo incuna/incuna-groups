@@ -102,3 +102,20 @@ class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
         form = self.get_form()
 
         self.assertFalse(form.initial['subscribe'])
+
+    def test_button_text_subscribe(self):
+        """The button says 'Subscribe' when the user is not subscribed."""
+        rendered_form = render_crispy_form(self.get_form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.string, 'Subscribe')
+
+    def test_button_text_unsubscribe(self):
+        """The button says 'Unsubscribe' when the user is subscribed."""
+        self.discussion.subscribers.add(self.user)
+        rendered_form = render_crispy_form(self.get_form())
+
+        button = BeautifulSoup(rendered_form, 'html.parser').findAll('button')[0]
+
+        self.assertEqual(button.string, 'Unsubscribe')
