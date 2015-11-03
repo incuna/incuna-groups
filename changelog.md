@@ -2,7 +2,7 @@
 
 This project uses Semantic Versioning (2.0).
 
-## Unreleased
+## v2.0.0
 
 - Use html `buttons` instead of `inputs` for form submission.
 
