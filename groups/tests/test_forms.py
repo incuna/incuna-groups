@@ -10,8 +10,9 @@ from .. import forms, models
 
 def has_submit(form):
     rendered_form = render_crispy_form(form)
-    inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
-    return any(i for i in inputs if i.get('type') == 'submit')
+    parser = BeautifulSoup(rendered_form, 'html.parser')
+    submits = parser.findAll('input', {'type': 'submit'})
+    return any(submits)
 
 
 def get_button(form):
