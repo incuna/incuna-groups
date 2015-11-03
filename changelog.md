@@ -4,11 +4,11 @@ This project uses Semantic Versioning (2.0).
 
 ## Unreleased
 
-* Use html `buttons` instead of `inputs` for form submission.
+- Use html `buttons` instead of `inputs` for form submission.
 
 ## v1.1.0
 
-* Add the ability to reply to discussions by replying to notification emails.
+- Add the ability to reply to discussions by replying to notification emails.
 
 ## v1.0.3
 
