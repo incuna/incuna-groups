@@ -93,29 +93,18 @@ class TestGroupSubscribe(RequestTestCase):
 class TestGroupSubscribeIntegration(WebTest):
     def setUp(self):
         self.user = factories.UserFactory.create()
+        self.group = factories.GroupFactory.create()
+        self.group_url = reverse('group-detail', kwargs={'pk': self.group.pk})
 
     def test_subscribe_unsubscribe(self):
         """A user can subscribe and unsubscribe from a group."""
-        group = factories.GroupFactory.create()
-        group_url = reverse('group-detail', kwargs={'pk': group.pk})
-
-        # A user not yet subscribed sees a Subscribe button
-        form = self.app.get(group_url, user=self.user).form
-        submit_button = form.fields['subscribe-submit'][0]
-        self.assertEqual(submit_button._value, 'Subscribe')
-
         # A user is subscribed to the group if they click the button
-        form.submit()
-        self.assertIn(self.user, group.watchers.all())
-
-        # A subscribed user sees an Unsubscribe button
-        form = self.app.get(group_url, user=self.user).form
-        submit_button = form.fields['subscribe-submit'][0]
-        self.assertEqual(submit_button._value, 'Unsubscribe')
+        self.app.get(self.group_url, user=self.user).form.submit()
+        self.assertIn(self.user, self.group.watchers.all())
 
         # A user is unsubscribed from the group if they click the button
-        form.submit()
-        self.assertNotIn(self.user, group.watchers.all())
+        self.app.get(self.group_url, user=self.user).form.submit()
+        self.assertNotIn(self.user, self.group.watchers.all())
 
 
 class TestCommentEmailMixin(RequestTestCase):

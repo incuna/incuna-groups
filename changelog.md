@@ -1,3 +1,8 @@
+Unreleased
+----------
+
+* Use html `buttons` instead of `inputs` for form submission.
+
 v1.1.0
 ------
 
