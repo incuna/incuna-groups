@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core import signing
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template import loader, RequestContext
@@ -94,6 +95,10 @@ class Discussion(models.Model):
 
     def is_subscribed(self, user):
         return self.subscribers.filter(id=user.pk).exists()
+
+    def generate_reply_uuid(self, user):
+        data = {'discussion_pk': self.pk, 'user_pk': user.pk}
+        return signing.dumps(data)
 
     def __str__(self):
         return self.name

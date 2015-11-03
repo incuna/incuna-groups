@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 setup(
-    version='1.0.3',
+    version='1.1.0',
     name='incuna-groups',
     packages=find_packages(),
     include_package_data=True,
