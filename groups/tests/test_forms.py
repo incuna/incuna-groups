@@ -34,7 +34,7 @@ class TestAddTextComment(Python2AssertMixin, RequestTestCase):
 
         inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
 
-        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+        has_submit = any(i for i in inputs if i.get('type') == 'submit')
 
         self.assertFalse(has_submit)
 
@@ -77,7 +77,7 @@ class TestAddFileComment(Python2AssertMixin, RequestTestCase):
 
         inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
 
-        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+        has_submit = any(i for i in inputs if i.get('type') == 'submit')
 
         self.assertFalse(has_submit)
 
@@ -122,7 +122,7 @@ class TestDiscussionCreateForm(Python2AssertMixin, RequestTestCase):
 
         inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
 
-        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+        has_submit = any(i for i in inputs if i.get('type') == 'submit')
 
         self.assertFalse(has_submit)
 
@@ -177,7 +177,7 @@ class TestSubscribeForm(Python2AssertMixin, RequestTestCase):
 
         inputs = BeautifulSoup(rendered_form, 'html.parser').findAll('input')
 
-        has_submit = any(filter(lambda i: i.get('type') == 'submit', inputs))
+        has_submit = any(i for i in inputs if i.get('type') == 'submit')
 
         self.assertFalse(has_submit)
 
