@@ -2,6 +2,13 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.0.0
+
+- Refactor `views.py` into several files in the `views` package.  These modules are
+  `views._helpers`, `views.comments`, `views.discussions`, `views.groups`, and
+  `views.subscriptions`.  You will need to edit any import statements you are making
+  to `incuna-groups` views.  (No URLs have changed.)
+
 ## v2.0.0
 
 - Use html `buttons` instead of `inputs` for form submission.
