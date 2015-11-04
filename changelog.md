@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.0.2
+
+- Add new email templates to MANIFEST.in.
+
 ## v3.0.1
 
 - Fix urls.py import structure.
@@ -19,7 +23,8 @@ This project uses Semantic Versioning (2.0).
 
 ## v1.1.0
 
-- Add the ability to reply to discussions by replying to notification emails.
+- Add the ability to reply to discussions by replying to notification emails.  **Note -
+  this was affected by a MANIFEST.in omission, see v3.0.2.**
 
 ## v1.0.3
 
