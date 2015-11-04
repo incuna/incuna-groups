@@ -18,7 +18,7 @@ urlpatterns = [
         ),
         url(
             r'^subscribe/$',
-            views.groups.GroupSubscribe.as_view(),
+            views.subscriptions.GroupSubscribe.as_view(),
             name='group-subscribe',
         ),
     ])),
@@ -29,14 +29,14 @@ urlpatterns = [
             name='discussion-thread',
         ),
         url(
-            r'^subscribe/$',
-            views.discussions.DiscussionSubscribe.as_view(),
-            name='discussion-subscribe',
-        ),
-        url(
             r'^upload-file/$',
             views.comments.CommentUploadFile.as_view(),
             name='comment-upload-file',
+        ),
+        url(
+            r'^subscribe/$',
+            views.subscriptions.DiscussionSubscribe.as_view(),
+            name='discussion-subscribe',
         ),
     ])),
     url(r'^comments/(?P<pk>\d+)/', include([

@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.views.generic import ListView
 
-from ._helpers import SubscribeBase
 from .. import forms, models
 
 
@@ -35,9 +34,3 @@ class GroupDetail(ListView):
     def dispatch(self, request, *args, **kwargs):
         self.group = get_object_or_404(models.Group, pk=self.kwargs['pk'])
         return super(GroupDetail, self).dispatch(request, *args, **kwargs)
-
-
-class GroupSubscribe(SubscribeBase):
-    model = models.Group
-    template_name = 'groups/group_subscribe_button.html'
-    subscribe_url_name = 'group-subscribe'

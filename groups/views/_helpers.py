@@ -1,10 +1,9 @@
 from django.apps import apps
 from django.contrib.sites.shortcuts import get_current_site
-from django.views.generic import CreateView, FormView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic import CreateView
 from incuna_mail import send
 
-from .. import forms, models
+from .. import models
 
 NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
@@ -13,38 +12,6 @@ def get_reply_address(discussion, user, request):
     uuid = discussion.generate_reply_uuid(user)
     site = get_current_site(request)
     return 'reply-{}@{}'.format(uuid, site)
-
-
-class SubscribeBase(SingleObjectMixin, FormView):
-    form_class = forms.SubscribeForm
-
-    def dispatch(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return super(SubscribeBase, self).dispatch(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        """Pass the user to the form to check subscription state."""
-        kwargs = super(SubscribeBase, self).get_form_kwargs()
-        kwargs.update({
-            'user': self.request.user,
-            'instance': self.object,
-            'url_name': self.subscribe_url_name,
-        })
-        return kwargs
-
-    def form_valid(self, form):
-        """Subscribe or unsubscribe the request user."""
-        user = self.request.user
-
-        if form.cleaned_data['subscribe']:
-            self.object.subscribe(user)
-        else:
-            self.object.unsubscribe(user)
-
-        return super(SubscribeBase, self).form_valid(form)
-
-    def get_success_url(self):
-        return self.object.get_absolute_url()
 
 
 class CommentEmailMixin:

@@ -147,36 +147,3 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertIn('A new discussion "{}"'.format(new_discussion.name), email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(first_comment.body, email.body)
-
-
-class TestDiscussionSubscribe(RequestTestCase):
-    view_class = discussions.DiscussionSubscribe
-
-    def test_form_subscribe(self):
-        discussion = factories.DiscussionFactory.create()
-        user = self.user_factory.create()
-
-        # Hit the view, passing in the necessaries.
-        request = self.create_request('post', user=user, data={'subscribe': True})
-        view = self.view_class.as_view()
-        view(request, pk=discussion.pk)
-
-        # Assert that the user is now subscribed.
-        self.assertIn(user, discussion.subscribers.all())
-        self.assertIn(discussion, user.subscribed_discussions.all())
-
-    def test_form_unsubscribe(self):
-        discussion = factories.DiscussionFactory.create()
-        user = self.user_factory.create()
-
-        # Subscribe the user.
-        discussion.subscribers.add(user)
-
-        # Hit the view, passing in the necessaries.
-        request = self.create_request('post', user=user, data={'subscribe': False})
-        view = self.view_class.as_view()
-        view(request, pk=discussion.pk)
-
-        # Assert that the user is now unsubscribed.
-        self.assertNotIn(user, discussion.subscribers.all())
-        self.assertNotIn(discussion, user.subscribed_discussions.all())

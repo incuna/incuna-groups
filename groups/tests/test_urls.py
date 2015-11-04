@@ -23,7 +23,7 @@ class TestGroupUrls(URLTestCase):
 
     def test_group_subscribe(self):
         self.assert_url_matches_view(
-            views.groups.GroupSubscribe,
+            views.subscriptions.GroupSubscribe,
             '/groups/{}/subscribe/'.format(self.pk),
             'group-subscribe',
             url_kwargs={'pk': self.pk}
@@ -47,7 +47,7 @@ class TestGroupUrls(URLTestCase):
 
     def test_discussion_subscribe(self):
         self.assert_url_matches_view(
-            views.discussions.DiscussionSubscribe,
+            views.subscriptions.DiscussionSubscribe,
             '/groups/discussions/{}/subscribe/'.format(self.pk),
             'discussion-subscribe',
             url_kwargs={'pk': self.pk}

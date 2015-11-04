@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import FormView
 from incuna_mail import send
 
-from ._helpers import CommentPostView, get_reply_address, SubscribeBase
+from ._helpers import CommentPostView, get_reply_address
 from .. import forms, models
 
 NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
@@ -88,10 +88,3 @@ class DiscussionThread(CommentPostView):
         context['group'] = discussion.group
         context['discussion-subscribe-form'] = form
         return context
-
-
-class DiscussionSubscribe(SubscribeBase):
-    """Provide an endpoint for the subscribe/unsubscribe button."""
-    model = models.Discussion
-    template_name = 'groups/subscribe_button.html'
-    subscribe_url_name = 'discussion-subscribe'
