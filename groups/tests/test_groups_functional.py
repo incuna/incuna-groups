@@ -1,13 +1,12 @@
 from django.core.urlresolvers import reverse
 
-from groups import views
-from groups.tests import factories
-
+from . import factories
 from .utils import RenderedContentTestCase
+from ..views import discussions, groups
 
 
 class TestGroupList(RenderedContentTestCase):
-    view = views.GroupList
+    view = groups.GroupList
 
     def test_list_display(self):
         group = factories.GroupFactory.create()
@@ -20,7 +19,7 @@ class TestGroupList(RenderedContentTestCase):
 
 
 class TestGroupDetail(RenderedContentTestCase):
-    view = views.GroupDetail
+    view = groups.GroupDetail
 
     def test_detail_display(self):
         group = factories.GroupFactory.create()
@@ -35,7 +34,7 @@ class TestGroupDetail(RenderedContentTestCase):
 
 
 class TestDiscussionThread(RenderedContentTestCase):
-    view = views.DiscussionThread
+    view = discussions.DiscussionThread
 
     def test_text_comment_display(self):
         comment_body = 'I am a comment and proud of it!'
