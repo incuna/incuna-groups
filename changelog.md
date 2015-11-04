@@ -2,7 +2,11 @@
 
 This project uses Semantic Versioning (2.0).
 
-## v3.0.0
+## v3.0.1
+
+- Fix urls.py import structure.
+
+## v3.0.0  (Broken, see v3.0.1)
 
 - Refactor `views.py` into several files in the `views` package.  These modules are
   `views._helpers`, `views.comments`, `views.discussions`, `views.groups`, and
