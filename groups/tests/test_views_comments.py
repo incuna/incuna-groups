@@ -192,7 +192,9 @@ class TestCommentPostByEmail(RequestTestCase):
         with mock.patch(self.extract_path, return_value='uuid') as extract_uuid:
             with mock.patch(self.uuid_path, return_value=uuid_data):
                 with mock.patch(self.email_path) as email_subscribers:
-                    view(request, uuid='use of this is mocked out')
+                    response = view(request, uuid='use of this is mocked out')
+
+        self.assertEqual(response.status_code, 200)
 
         # Assert that a comment was created, subscribers were emailed, and the
         # recipient field in the request data was respected.

@@ -138,4 +138,5 @@ class CommentPostByEmail(CommentEmailMixin, View):
             discussion=target['discussion'],
         )
         self.email_subscribers(comment)
+
         return HttpResponse(status=200)
