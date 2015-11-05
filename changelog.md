@@ -2,6 +2,12 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.0.3
+
+- Send `Reply-To` UUIDs in email notifications with the colons replaced with dollar signs,
+  since a colon is an illegal character in an email address.
+- Fix broken `post()` method in `CommentPostByEmail` so that it will work in practice.
+
 ## v3.0.2
 
 - Add new email templates to MANIFEST.in.
@@ -21,10 +27,9 @@ This project uses Semantic Versioning (2.0).
 
 - Use html `buttons` instead of `inputs` for form submission.
 
-## v1.1.0
+## v1.1.0 (Broken, see v3.0.2 and v3.0.3)
 
-- Add the ability to reply to discussions by replying to notification emails.  **Note -
-  this was affected by a MANIFEST.in omission, see v3.0.2.**
+- Add the ability to reply to discussions by replying to notification emails.
 
 ## v1.0.3
 
