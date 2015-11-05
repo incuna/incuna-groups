@@ -4,7 +4,6 @@ except ImportError:
     import mock
 
 import datetime
-import json
 
 import pytz
 from django.contrib.sites.shortcuts import get_current_site
@@ -149,14 +148,20 @@ class TestCommentPostByEmail(RequestTestCase):
             self.view_class.get_uuid_data(uuid)
 
     def test_extract_uuid_from_email(self):
-        """Assert that `reply-{uuid}@{domain}` becomes `uuid`."""
-        uuid = 'I-aM:an_UU1D'
+        """
+        Assert that `reply-{uuid}@{domain}` becomes `uuid`.
+
+        The UUID that is returned has had its dollar signs turned back into colons so
+        that it can be parsed properly.
+        """
+        reply_uuid = 'I-aM$an_UU1D'
+        expected_uuid = reply_uuid.replace('$', ':')
         request = self.create_request()
         domain = get_current_site(request).domain
-        email = 'reply-{}@{}'.format(uuid, domain)
+        email = 'reply-{}@{}'.format(reply_uuid, domain)
 
         extracted_uuid = self.view_class.extract_uuid_from_email(email, request)
-        self.assertEqual(extracted_uuid, uuid)
+        self.assertEqual(extracted_uuid, expected_uuid)
 
     def test_extract_uuid_failure(self):
         """The method throws a 404 when it fails."""
@@ -173,17 +178,15 @@ class TestCommentPostByEmail(RequestTestCase):
 
         message_body = 'Email replying is so straightforward and fun'
         request_data = {
-            'message': {
-                'stripped-text': message_body,
-                'recipient': 'this is needed, but mocked out',
-            }
+            'stripped-text': message_body,
+            'recipient': 'this is needed, but mocked out',
         }
 
         request = self.create_request(
             method='post',
-            data=json.dumps(request_data),
             content_type='application/json',
         )
+        request.POST = request_data
         view = self.view_class.as_view()
 
         with mock.patch(self.extract_path, return_value='uuid') as extract_uuid:
@@ -197,6 +200,6 @@ class TestCommentPostByEmail(RequestTestCase):
         self.assertEqual(comment.body, message_body)
         email_subscribers.assert_called_once_with(comment)
         extract_uuid.assert_called_once_with(
-            request_data['message']['recipient'],
+            request_data['recipient'],
             request
         )
