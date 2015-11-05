@@ -1,4 +1,3 @@
-import json
 import re
 
 from django.apps import apps
@@ -6,9 +5,11 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import signing
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+
 from django.views.generic.edit import DeleteView
 
 from ._helpers import CommentEmailMixin, CommentPostView
@@ -95,8 +96,8 @@ class CommentPostByEmail(CommentEmailMixin, View):
     'uuid'.  This matches up to an EmailUUID object that stores the discussion and user
     being used.
     """
+    @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
-        self.uuid = kwargs.pop('uuid')
         return super(CommentPostByEmail, self).dispatch(request, *args, **kwargs)
 
     @staticmethod
@@ -110,18 +111,23 @@ class CommentPostByEmail(CommentEmailMixin, View):
 
     @staticmethod
     def extract_uuid_from_email(email, request):
-        """Turn `reply-{uuid}@domain.com` into just `uuid`."""
-        uuid_regex = r'(?P<uuid>[\w\d\-_:]+)'
+        """
+        Turn `reply-{uuid}@domain.com` into just `uuid`.
+
+        The UUIDs contain colons, which aren't allowed in email addresses, so they get
+        replaced with dollar signs in the `reply-to` address.  We have to undo that here.
+        """
+        uuid_regex = r'(?P<uuid>[\w\d\-_$]+)'
         regex = r'reply-{}@{}'.format(uuid_regex, get_current_site(request))
         match = re.compile(regex).match(email)
         if not match:
             raise Http404
 
-        return match.group('uuid')
+        return match.group('uuid').replace('$', ':')
 
     def post(self, request, *args, **kwargs):
         """Create a new comment to self.pk."""
-        message = json.loads(request.body.decode())['message']
+        message = request.POST
         uuid = self.extract_uuid_from_email(message['recipient'], request)
         target = self.get_uuid_data(uuid)
 
@@ -132,3 +138,5 @@ class CommentPostByEmail(CommentEmailMixin, View):
             discussion=target['discussion'],
         )
         self.email_subscribers(comment)
+
+        return HttpResponse(status=200)

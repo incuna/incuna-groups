@@ -9,7 +9,17 @@ NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
 
 def get_reply_address(discussion, user, request):
-    uuid = discussion.generate_reply_uuid(user)
+    """
+    Wrap a discussion reply UUID in an email address suitable for use as a reply-to.
+
+    reply-{uuid}@{domain}
+
+    The UUID contains colons, which aren't allowed in email addresses, so swap those
+    out for dollar signs ($) as a placeholder using a string `replace`.  The rest of
+    the UUID is base64-encoded, so there will be neither colons nor dollar signs in it
+    (it's only alphanumerics, hyphens, and underscores).
+    """
+    uuid = discussion.generate_reply_uuid(user).replace(':', '$')
     site = get_current_site(request)
     return 'reply-{}@{}'.format(uuid, site)
 

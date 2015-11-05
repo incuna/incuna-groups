@@ -14,12 +14,17 @@ from ..views import _helpers as helpers
 
 class TestGetReplyAddress(Python2AssertMixin, RequestTestCase):
     def test_get_reply_address(self):
-        """Assert that the method returns `reply-{uuid}@{domain}`."""
+        """
+        Assert that the method returns `reply-{uuid}@{domain}`.
+
+        Look for dollar signs ($) instead of colons in the UUID, because we've done some
+        replace work to ensure the email address is legal.
+        """
         request = self.create_request()
         discussion = factories.DiscussionFactory.create()
 
         domain = get_current_site(request).domain
-        uuid_regex = r'[\d\w\-_:]*'  # A string of alphanumerics, `-`, `_`, and/or `:`
+        uuid_regex = r'[\d\w\-_$]*'  # A string of alphanumerics, `-`, `_`, and/or `$`
         self.assertRegex(
             helpers.get_reply_address(discussion, request.user, request),
             r'reply-{uuid}@{domain}'.format(uuid=uuid_regex, domain=domain)
