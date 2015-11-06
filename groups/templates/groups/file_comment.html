@@ -1,5 +1,9 @@
 {% extends "groups/comment_base.html" %}
+{% load static %}
 
 {% block comment_visible %}
-    <p>{{ comment.file }}</p>
+    <p>
+        Uploaded a file:
+        <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.file.name|slice:"21:" }}</a>
+    </p>
 {% endblock comment_visible %}
