@@ -125,17 +125,38 @@ class CommentPostByEmail(CommentEmailMixin, View):
 
         return match.group('uuid').replace('$', ':')
 
+    @staticmethod
+    def create_file_comments(request, user, discussion):
+        """
+        Create any number of file comments from the attachments in this message.
+
+        Mailgun provides an entry called `attachment-count` to store the number
+        of attachments, then each attachment is a separate entry, `attachment-x` where
+        `x` is a number.
+        """
+        for attachment in request.FILES.values():
+            models.FileComment.objects.create(
+                file=attachment,
+                user=user,
+                discussion=discussion,
+            )
+
     def post(self, request, *args, **kwargs):
         """Create a new comment to self.pk."""
         message = request.POST
         uuid = self.extract_uuid_from_email(message['recipient'], request)
         target = self.get_uuid_data(uuid)
 
+        user = target['user']
+        discussion = target['discussion']
+
+        self.create_file_comments(request, user, discussion)
+
         content = message['stripped-text']
         comment = models.TextComment.objects.create(
             body=content,
-            user=target['user'],
-            discussion=target['discussion'],
+            user=user,
+            discussion=discussion,
         )
         self.email_subscribers(comment)
 

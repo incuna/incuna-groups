@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## Upcoming
+
+- Add the ability to post files to discussions by attaching them to email replies.
+
 ## v3.0.3
 
 - Send `Reply-To` UUIDs in email notifications with the colons replaced with dollar signs,
