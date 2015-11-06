@@ -23,20 +23,20 @@ class WithinDaysQuerySetMixin:
     """
     @staticmethod
     def get_threshold_delta(timedelta):
-        """Return the earliest posting *time* a comment can have and still be recent."""
+        """Return the earliest posting *time* an item can have and still be recent."""
         return datetime.datetime.now() - timedelta
 
     @staticmethod
     def get_threshold_date(within_days=DEFAULT_WITHIN_DAYS):
-        """Return the earliest posting *date* a comment can have and still be recent."""
+        """Return the earliest posting *date* an item can have and still be recent."""
         return datetime.date.today() - datetime.timedelta(days=within_days)
 
     def within_days(self, days=DEFAULT_WITHIN_DAYS):
-        """All users that created a comment within the last `days` days."""
+        """All users that created an item within the last `days` days."""
         return self.since(self.get_threshold_date(days))
 
     def within_time(self, timedelta):
-        """All users that created a comment within the last `timedelta`."""
+        """All users that created an item within the last `timedelta`."""
         return self.since(self.get_threshold_delta(timedelta))
 
     def since(self, when):
