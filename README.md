@@ -1,6 +1,9 @@
 # `incuna-groups` [![Build Status](https://magnum.travis-ci.com/incuna/incuna-groups.svg?token=9QKsFUYHUxekS7Q4cLHs&branch=master)](https://travis-ci.org/incuna/incuna-groups)
 
-An extensible Django app that provides forum functionality.  Administrators can create discussion groups.  Users can create discussions on groups, and comment on those discussions.  Users can also subscribe to groups and/or discussions to receive notifications from them, and reply by replying to the notifications. 
+An extensible Django app that provides forum functionality.
+- Administrators can create discussion groups.
+- Users can create discussions on groups, and comment on those discussions.
+- Users can also subscribe to groups and/or discussions to receive notifications from them, and post responses by replying to the notification emails. 
 
 ## Installation
 
