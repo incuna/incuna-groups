@@ -118,6 +118,7 @@ class TestCommentPostByEmail(RequestTestCase):
     extract_path = 'groups.views.comments.CommentPostByEmail.extract_uuid_from_email'
     uuid_path = 'groups.views.comments.CommentPostByEmail.get_uuid_data'
     email_path = 'groups.views.comments.CommentEmailMixin.email_subscribers'
+    file_create_path = 'groups.views.comments.CommentPostByEmail.create_file_comments'
 
     def generate_uuid(self, discussion_pk, user_pk):
         """Generate a UUID in the same way as a discussion."""
@@ -171,6 +172,21 @@ class TestCommentPostByEmail(RequestTestCase):
                 self.create_request()
             )
 
+    def test_create_file_comments(self):
+        """Assert that a file comment is created for each attachment in request.FILES."""
+        discussion = factories.DiscussionFactory.create()
+        user = discussion.creator
+
+        # Let's use mocking and trust that Manager.create() works rather than generate
+        # an actual file.
+        file = "I am a file and I'm digging a hole"
+        request = mock.MagicMock(FILES={'attachment-1': file})
+
+        with mock.patch.object(models.FileComment.objects, 'create') as file_create:
+            self.view_class.create_file_comments(request, user, discussion)
+
+        file_create.assert_called_once_with(file=file, user=user, discussion=discussion)
+
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
         user = discussion.creator
@@ -189,19 +205,25 @@ class TestCommentPostByEmail(RequestTestCase):
         request.POST = request_data
         view = self.view_class.as_view()
 
+        # Mock out all the helper methods, since they're tested separately, and it saves
+        # on creating a *ton* of extra setup data.  There doesn't appear to be a way to
+        # achieve this without extremely nested `with` statements.
         with mock.patch(self.extract_path, return_value='uuid') as extract_uuid:
             with mock.patch(self.uuid_path, return_value=uuid_data):
                 with mock.patch(self.email_path) as email_subscribers:
-                    response = view(request, uuid='use of this is mocked out')
+                    with mock.patch(self.file_create_path) as create_file_comments:
+                        response = view(request, uuid='use of this is mocked out')
 
+        # Mailgun likes to receive confirmation, so it's important we send a HTTP200 to
+        # avoid resends.
         self.assertEqual(response.status_code, 200)
 
-        # Assert that a comment was created, subscribers were emailed, and the
-        # recipient field in the request data was respected.
+        # Assert that a comment was created correctly.
         comment = models.TextComment.objects.get()
         self.assertEqual(comment.body, message_body)
+
+        # Assert that we've respected the recipient when generating the UUID, created
+        # file comments out of any attachments, and emailed any subscribers.
+        extract_uuid.assert_called_once_with(request_data['recipient'], request)
+        create_file_comments.assert_called_once_with(request, user, discussion)
         email_subscribers.assert_called_once_with(comment)
-        extract_uuid.assert_called_once_with(
-            request_data['recipient'],
-            request
-        )
