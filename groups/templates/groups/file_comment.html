@@ -4,6 +4,6 @@
 {% block comment_visible %}
     <p>
         Uploaded a file:
-        <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.file.name|slice:"21:" }}</a>
+        <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
     </p>
 {% endblock comment_visible %}

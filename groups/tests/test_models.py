@@ -195,3 +195,8 @@ class TestFileComment(Python2AssertMixin, TestCase):
             'basecomment_ptr_id',
         ]
         self.assertCountEqual(fields, expected)
+
+    def test_short_filename(self):
+        filename = '/groups/file_comments/name.txt'
+        comment = factories.FileCommentFactory.create(file__filename=filename)
+        self.assertEqual(comment.short_filename(), 'name.txt')
