@@ -194,3 +194,7 @@ class FileComment(BaseComment):
     """A comment with an uploaded file. No text."""
     file = models.FileField(upload_to='groups/file_comments')
     template_name = 'groups/file_comment.html'
+
+    def short_filename(self):
+        """Trim the `/groups/file_comments/` part off the front of the filename."""
+        return self.file.name[21:]
