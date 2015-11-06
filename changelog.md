@@ -2,9 +2,11 @@
 
 This project uses Semantic Versioning (2.0).
 
-## Upcoming
+## v3.1.0
 
 - Add the ability to post files to discussions by attaching them to email replies.
+- Improve the display of file comments and make them link to the file in question.
+- Add a proper README.
 
 ## v3.0.3
 
