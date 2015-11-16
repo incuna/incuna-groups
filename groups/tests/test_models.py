@@ -31,6 +31,41 @@ class TestGroup(Python2AssertMixin, TestCase):
         group = factories.GroupFactory.create()
         self.assertEqual(str(group), group.name)
 
+    def test_get_all_comments(self):
+        """Assert this method returns all comments on the group and no more."""
+        group = factories.GroupFactory.create()
+        comments = factories.BaseCommentFactory.create_batch(2, discussion__group=group)
+        factories.BaseCommentFactory.create()  # unrelated comment
+
+        self.assertSequenceEqual(list(group.get_all_comments()), comments)
+
+    def test_get_latest_comment(self):
+        """Assert that this method returns the most recent comment on the group."""
+        group = factories.GroupFactory.create()
+        factories.BaseCommentFactory.create(discussion__group=group)
+        latest_on_group = factories.BaseCommentFactory.create(discussion__group=group)
+        factories.BaseCommentFactory.create()  # unrelated comment
+
+        self.assertEqual(group.get_latest_comment(), latest_on_group)
+
+    def test_get_total_commenters(self):
+        """Assert that this method returns the number of unique posters on the group."""
+        group = factories.GroupFactory.create()
+        comments = factories.BaseCommentFactory.create_batch(2, discussion__group=group)
+        factories.BaseCommentFactory.create(
+            discussion__group=group,
+            user=comments[0].user,
+        )
+
+        self.assertEqual(group.get_total_commenters(), 2)
+
+    def test_get_total_discussions(self):
+        """Assert that this method returns the number of discussions on the group."""
+        group = factories.GroupFactory.create()
+        factories.DiscussionFactory.create(group=group)
+        factories.DiscussionFactory.create()  # unrelated discussion
+        self.assertEqual(group.get_total_discussions(), 1)
+
 
 class TestDiscussion(Python2AssertMixin, TestCase):
     def test_fields(self):

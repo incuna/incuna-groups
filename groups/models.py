@@ -49,6 +49,18 @@ class Group(models.Model):
     def is_subscribed(self, user):
         return self.watchers.filter(id=user.pk).exists()
 
+    def get_all_comments(self):
+        return self.discussions.comments()
+
+    def get_latest_comment(self):
+        return self.get_all_comments().latest('date_created')
+
+    def get_total_commenters(self):
+        return self.get_all_comments().users().count()
+
+    def get_total_discussions(self):
+        return self.discussions.count()
+
     def __str__(self):
         return self.name
 

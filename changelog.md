@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## Upcoming
+
+- Add methods to the `Group` model that help display useful information.
+
 ## v3.1.1
 
 - Improve email template copy.
