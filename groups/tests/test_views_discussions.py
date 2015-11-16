@@ -144,6 +144,6 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertEqual(email.subject, 'New discussion in {}'.format(group.name))
         self.assertEqual(email.to, [subscriber.email])
         self.assertEqual(email.reply_to, [reply_address])
-        self.assertIn('A new discussion "{}"'.format(new_discussion.name), email.body)
+        self.assertIn('A new discussion on "{}"'.format(new_discussion.name), email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(first_comment.body, email.body)

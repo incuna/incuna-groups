@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## Upcoming
+
+- Improve email template copy.
+
 ## v3.1.0
 
 - Add the ability to post files to discussions by attaching them to email replies.
