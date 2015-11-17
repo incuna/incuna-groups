@@ -2,7 +2,7 @@
 
 This project uses Semantic Versioning (2.0).
 
-## Upcoming
+## v3.1.2
 
 - Add methods to the `Group` model that help display useful information.
 
