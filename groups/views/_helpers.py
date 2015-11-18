@@ -57,6 +57,7 @@ class CommentEmailMixin:
                     'comment': comment,
                     'user': user,
                     'site': get_current_site(self.request),
+                    'protocol': 'https' if self.request.is_secure() else 'http',
                 },
             )
 
