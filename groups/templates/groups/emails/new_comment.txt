@@ -6,4 +6,4 @@ A new comment has been posted to the discussion "{{ name }}" by {{ creator }}{% 
 
 {% else %}.{% endif %}
 
-{% blocktrans with url=comment.get_absolute_url %}Reply to this email to post a response, or visit this URL to reply online: {{ site.domain }}{{ url }}{% endblocktrans %}
+{% blocktrans with url=comment.get_absolute_url protocol=protocol domain=site.domain %}Reply to this email to post a response, or visit this URL to reply online: {{ protocol }}://{{ domain }}{{ url }}{% endblocktrans %}
