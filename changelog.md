@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.1.3
+
+- Display group URLs properly in notification emails.
+
 ## v3.1.2
 
 - Add methods to the `Group` model that help display useful information.
