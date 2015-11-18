@@ -1,5 +1,6 @@
 from django.apps import apps
 from django.contrib.sites.shortcuts import get_current_site
+from django.http import HttpResponseRedirect
 from django.views.generic import CreateView
 from incuna_mail import send
 
@@ -55,6 +56,7 @@ class CommentEmailMixin:
                 context={
                     'comment': comment,
                     'user': user,
+                    'site': get_current_site(self.request),
                 },
             )
 
@@ -82,5 +84,6 @@ class CommentPostView(CommentEmailMixin, CreateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         form.instance.discussion = self.discussion
-        self.email_subscribers(form.instance)
-        return super(CommentPostView, self).form_valid(form)
+        self.object = form.save()
+        self.email_subscribers(self.object)
+        return HttpResponseRedirect(self.get_success_url())

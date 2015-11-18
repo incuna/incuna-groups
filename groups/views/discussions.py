@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
 from django.views.generic import FormView
@@ -55,6 +56,7 @@ class DiscussionCreate(FormView):
                 context={
                     'discussion': discussion,
                     'user': user,
+                    'site': get_current_site(self.request),
                 },
             )
 

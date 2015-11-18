@@ -147,3 +147,4 @@ class TestDiscussionCreate(RequestTestCase):
         self.assertIn('A new discussion on "{}"'.format(new_discussion.name), email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(first_comment.body, email.body)
+        self.assertIn('http://testserver', email.body)

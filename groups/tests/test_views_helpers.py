@@ -97,6 +97,7 @@ class TestCommentEmailMixin(RequestTestCase):
         self.assertIn('A new comment has been posted', email.body)
         self.assertIn(subscriber.get_full_name(), email.body)
         self.assertIn(comment.body, email.body)
+        self.assertIn('http://testserver', email.body)
 
 
 class TestCommentPostView(Python2AssertMixin, RequestTestCase):
