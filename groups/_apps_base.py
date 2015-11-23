@@ -50,5 +50,5 @@ class AdminRegisteringAppConfig(AppConfig):
 
     def ready(self):
         """After performing normal Django setup, register our admin classes."""
-        super().ready()
+        super(AdminRegisteringAppConfig, self).ready()
         self._register_admin_classes()
