@@ -25,7 +25,9 @@ class GroupsConfig(AdminRegisteringAppConfig):
     group_admin_class_path = 'groups.admin.GroupAdmin'
     discussion_admin_class_path = 'groups.admin.DiscussionAdmin'
 
-    admin_classes = {
-        'Group': group_admin_class_path,
-        'Discussion': discussion_admin_class_path,
-    }
+    def _register_admin_classes(self):
+        self.admin_classes.update(**{
+            'Group': self.group_admin_class_path,
+            'Discussion': self.discussion_admin_class_path,
+        })
+        super(GroupsConfig, self)._register_admin_classes()
