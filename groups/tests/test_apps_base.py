@@ -20,7 +20,8 @@ class TestAdminRegisteringAppConfig(TestCase):
 
     def test_register_admin_classes(self):
         """
-        Assert that admin.site.register() is called based on the value of admin_classes.
+        Assert that admin.site.register() is called based on the value of admin_classes,
+        and update_admin_classes() is also called (although it does nothing).
         """
         self.config.admin_classes = {
             'Group': 'groups.admin.GroupAdmin',
@@ -31,9 +32,11 @@ class TestAdminRegisteringAppConfig(TestCase):
         # process to get a better unit test.  Assert that it's called with the correct
         # input later on to make sure we're not cheating.
         with mock.patch.object(self.config, 'get_model', return_value=Group) as get_model:
-            with mock.patch('django.contrib.admin.site.register') as site_register:
-                self.config._register_admin_classes()
+            with mock.patch.object(self.config, 'update_admin_classes') as update_admin:
+                with mock.patch('django.contrib.admin.site.register') as site_register:
+                    self.config._register_admin_classes()
 
+        update_admin.assert_called_once_with(self.config.admin_classes)
         get_model.assert_called_once_with('Group')
         site_register.assert_called_once_with(Group, GroupAdmin)
 
