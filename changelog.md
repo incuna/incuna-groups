@@ -2,6 +2,11 @@
 
 This project uses Semantic Versioning (2.0).
 
+## Upcoming
+
+- Allow admin classes for `incuna-groups`' models to be customised easily through its
+  `AppConfig`.
+
 ## v3.1.3
 
 - Display group URLs properly in notification emails.

@@ -15,6 +15,10 @@ This project contains migrations, so run `python manage.py migrate` before using
 
 `incuna-groups` is self-contained - it provides models, views, and templates.  At the moment, it doesn't provide styling or a REST API.
 
+Some straightforward customisation is exposed through the `AppConfig` (which by default is `groups.apps.GroupsConfig`) and the templates can all be overridden easily.
+
+Each page template has a `base` version that the page template itself directly `extends`, meaning you can replace the page template but still make use of all of the blocks and other HTML in the original.  For instance, `discussion_thread.html` does nothing other than extend `discussion_thread_base.html`.  You can override `discussion_thread.html`, extend `discussion_thread_base.html` in the same way, and change the content of, say, a single block, rather than having to copy and paste the entirety of the discussion thread template in and modify from there. 
+
 ### Models
 
 There are three main models that everything revolves around, one of which is polymorphic for easy extension.
@@ -52,6 +56,15 @@ There are a lot of different views that come together to make the forums work.
 
 ## Notes on features
 
+### `AppConfig`
+
+`incuna-groups` has an `AppConfig`, located in `apps.py`, which allows for easy customisation of some of its behaviour.  The documentation on `AppConfig`s (and their use) is here: https://docs.djangoproject.com/en/1.8/ref/applications/#for-application-users
+
+The `AppConfig` exposes:
+- `default_within_days` - a default parameter for the `within_days` methods on some of the model managers, which return items that were posted or posted to within that time period.
+- `new_comment_subject` and `new_discussion_subject` - subjects for notification emails.  Each one will be formatted with the `{discussion}` a comment is on or the `{group}` a discussion belongs to, respectively.
+- `group_admin_class_path` and `discussion_admin_class_path` - these allow you to override the admin behaviour of `incuna-groups` by slotting in alternate `ModelAdmin` classes.  These may or may not be based on the existing admin classes in `admin.py`.
+
 ### Email notifications
 
 Whenever a discussion is created in a group, users subscribed to that group get an email notification.  Whenever a comment is posted to a discussion, users subscribed to that discussion or its parent group also receive email notifications.
@@ -71,3 +84,7 @@ There are a couple of gotchas:
 - The `/groups/reply/` endpoint _has a trailing slash_.  Ensure that this slash is included in any Mailgun route destination otherwise you'll get a stream of HTTP301s.
 - If you're using [`incuna_auth.LoginRequiredMiddleware`](https://github.com/incuna/incuna-auth/blob/master/incuna_auth/middleware/login_required.py#L28), make sure to add `/groups/reply/` to `LOGIN_EXEMPT_URLS` to avoid more 301s.
 - The `CommentPostByEmail` view has a `@csrf_exempt` decorator on the `dispatch()` method to avoid CSRF-related HTTP403 errors.  If you extend the class, make sure to add the CSRF exemption.
+
+### Overriding admin classes
+
+`Group` and `Discussion` both have custom admin classes, defined in `admin.py`.  Both of these can be easily replaced by way of the `AppConfig` (see above).  The `AppConfig` registers these admin classes for you, so don't call `admin.site.register` yourself.
