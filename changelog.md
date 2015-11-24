@@ -2,7 +2,7 @@
 
 This project uses Semantic Versioning (2.0).
 
-## Upcoming
+## v3.2.0
 
 - Allow admin classes for `incuna-groups`' models to be customised easily through its
   `AppConfig`.
