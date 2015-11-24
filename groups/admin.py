@@ -1,20 +1,12 @@
 from django.contrib import admin
 
-from .models import Discussion, Group
 
-
-@admin.register(Group)
+# Registered in the `AppConfig`
 class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ('moderators', 'members_if_private')
     exclude = ('watchers',)
 
-    class Meta:
-        model = Group
 
-
-@admin.register(Discussion)
+# Also registered in the `AppConfig`
 class DiscussionAdmin(admin.ModelAdmin):
     exclude = ('subscribers', 'ignorers')
-
-    class Meta:
-        model = Discussion
