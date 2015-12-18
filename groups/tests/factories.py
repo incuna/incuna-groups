@@ -65,3 +65,10 @@ class FileCommentFactory(BaseCommentFactory):
 
     class Meta:
         model = models.FileComment
+
+
+class AttachedFileCommentFactory(FileCommentFactory):
+    attached_to = None
+
+    class Meta:
+        model = models.AttachedFileComment

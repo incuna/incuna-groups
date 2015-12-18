@@ -210,3 +210,8 @@ class FileComment(BaseComment):
     def short_filename(self):
         """Trim the `/groups/file_comments/` part off the front of the filename."""
         return self.file.name[21:]
+
+
+class AttachedFileComment(FileComment):
+    """A FileComment that can optionally be attached to a different comment."""
+    attached_to = models.ForeignKey('groups.BaseComment', blank=True, null=True)
