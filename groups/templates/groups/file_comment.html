@@ -2,8 +2,5 @@
 {% load static %}
 
 {% block comment_visible %}
-    <p>
-        Uploaded a file:
-        <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
-    </p>
+    {% include "file_comment_inner.html" %}
 {% endblock comment_visible %}
