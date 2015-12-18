@@ -235,9 +235,9 @@ class TestFileComment(Python2AssertMixin, TestCase):
         self.assertCountEqual(fields, expected)
 
     def test_short_filename(self):
-        filename = '/groups/file_comments/name.txt'
+        filename = '/groups/file_comments/test_file_comment.txt'
         comment = factories.FileCommentFactory.create(file__filename=filename)
-        self.assertEqual(comment.short_filename(), 'name.txt')
+        self.assertEqual(comment.short_filename(), 'test_file_comment.txt')
 
 
 class TestAttachedFileComment(Python2AssertMixin, TestCase):
@@ -266,6 +266,6 @@ class TestAttachedFileComment(Python2AssertMixin, TestCase):
         self.assertCountEqual(fields, expected)
 
     def test_short_filename(self):
-        filename = '/groups/file_comments/name.txt'
+        filename = '/groups/file_comments/test_attached_file_comment.txt'
         comment = factories.AttachedFileCommentFactory.create(file__filename=filename)
-        self.assertEqual(comment.short_filename(), 'name.txt')
+        self.assertEqual(comment.short_filename(), 'test_attached_file_comment.txt')
