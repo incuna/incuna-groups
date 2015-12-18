@@ -1,7 +1,0 @@
-<p>
-    Attached file:
-    <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
-</p>
-{% for attachment in comment.attached_file_comments %}
-    {% include "file_comment_inner.html" with comment=attachment %}
-{% endfor %}

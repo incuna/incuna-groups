@@ -2,7 +2,7 @@
 
 {% block comment_visible %}
     <p>{{ comment.body }}</p>
-    {% for attachment in comment.attached_file_comments %}
-        {% include "file_comment_inner.html" with comment=attachment %}
+    {% for attachment in comment.attachments.all %}
+        {% include "groups/file_comment_inner.html" with comment=attachment %}
     {% endfor %}
 {% endblock comment_visible %}

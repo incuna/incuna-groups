@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='AttachedFileComment',
             fields=[
                 ('filecomment_ptr', models.OneToOneField(serialize=False, to='groups.FileComment', primary_key=True, parent_link=True, auto_created=True)),
-                ('attached_to', models.ForeignKey(blank=True, to='groups.BaseComment', null=True)),
+                ('attached_to', models.ForeignKey(blank=True, to='groups.BaseComment', null=True, related_name='attachments')),
             ],
             options={
                 'abstract': False,

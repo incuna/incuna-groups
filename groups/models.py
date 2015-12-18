@@ -214,4 +214,9 @@ class FileComment(BaseComment):
 
 class AttachedFileComment(FileComment):
     """A FileComment that can optionally be attached to a different comment."""
-    attached_to = models.ForeignKey('groups.BaseComment', blank=True, null=True)
+    attached_to = models.ForeignKey(
+        'groups.BaseComment',
+        blank=True,
+        null=True,
+        related_name='attachments'
+    )

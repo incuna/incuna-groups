@@ -76,7 +76,9 @@ class DiscussionThread(CommentPostView):
         with a value denoting if it can be deleted by the current user. This allows us
         to conditionally display the delete link in the template.
         """
-        return self.discussion.comments.with_user_may_delete(self.request.user)
+        return self.discussion.comments.non_attachments().with_user_may_delete(
+            self.request.user
+        )
 
     def get_context_data(self, *args, **kwargs):
         """Attach the discussion and its existing comments to the context."""

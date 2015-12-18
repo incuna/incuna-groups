@@ -125,12 +125,12 @@ class TestBaseComment(Python2AssertMixin, TestCase):
             'user_id',
             'date_created',
             'state',
+            'attachments',
 
             'polymorphic_ctype',
             'polymorphic_ctype_id',
             'textcomment',
             'filecomment',
-            'attachedfilecomment',
         ]
         self.assertCountEqual(fields, expected)
 
@@ -203,12 +203,12 @@ class TestTextComment(Python2AssertMixin, TestCase):
             'user_id',
             'date_created',
             'state',
+            'attachments',
 
             'polymorphic_ctype',
             'polymorphic_ctype_id',
             'basecomment_ptr',
             'basecomment_ptr_id',
-            'attachedfilecomment',
         ]
         self.assertCountEqual(fields, expected)
 
@@ -225,12 +225,12 @@ class TestFileComment(Python2AssertMixin, TestCase):
             'user_id',
             'date_created',
             'state',
+            'attachments',
 
             'polymorphic_ctype',
             'polymorphic_ctype_id',
             'basecomment_ptr',
             'basecomment_ptr_id',
-            'attachedfilecomment',
         ]
         self.assertCountEqual(fields, expected)
 
@@ -254,6 +254,7 @@ class TestAttachedFileComment(Python2AssertMixin, TestCase):
             'state',
             'attached_to',
             'attached_to_id',
+            'attachments',
 
             'polymorphic_ctype',
             'polymorphic_ctype_id',
@@ -261,7 +262,6 @@ class TestAttachedFileComment(Python2AssertMixin, TestCase):
             'basecomment_ptr_id',
             'filecomment_ptr',
             'filecomment_ptr_id',
-            'attachedfilecomment',
         ]
         self.assertCountEqual(fields, expected)
 
