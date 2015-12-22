@@ -212,11 +212,18 @@ class FileComment(BaseComment):
         return self.file.name[21:]
 
 
-class AttachedFileComment(FileComment):
-    """A FileComment that can optionally be attached to a different comment."""
+class AttachedFile(models.Model):
+    """A file upload that can be attached to a comment."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='attachments')
+    date_created = models.DateTimeField(default=timezone.now)
+    file = models.FileField(upload_to='groups/attachments')
     attached_to = models.ForeignKey(
         'groups.BaseComment',
         blank=True,
         null=True,
         related_name='attachments'
     )
+
+    def short_filename(self):
+        """Trim the `/groups/attachments/` part off the front of the filename."""
+        return self.file.name[19:]

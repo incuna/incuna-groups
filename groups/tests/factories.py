@@ -67,8 +67,10 @@ class FileCommentFactory(BaseCommentFactory):
         model = models.FileComment
 
 
-class AttachedFileCommentFactory(FileCommentFactory):
+class AttachedFileFactory(factory.DjangoModelFactory):
+    user = factory.SubFactory(UserFactory)
+    file = images.LocalFileField()
     attached_to = None
 
     class Meta:
-        model = models.AttachedFileComment
+        model = models.AttachedFile

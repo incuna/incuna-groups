@@ -108,11 +108,6 @@ class CommentManagerMixin(WithinDaysQuerySetMixin):
         User = get_user_model()
         return User.objects.filter(comments__in=self.all()).distinct()
 
-    def non_attachments(self):
-        """All the comments that aren't attached to other comments."""
-        from groups.models import AttachedFileComment
-        return self.not_instance_of(AttachedFileComment)
-
     def with_user_may_delete(self, user):
         """
         Return a list of comments annotated with 'user_may_delete' values.
