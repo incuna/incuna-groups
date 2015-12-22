@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.core import signing
 from django.core.urlresolvers import reverse
@@ -208,8 +210,8 @@ class FileComment(BaseComment):
     template_name = 'groups/file_comment.html'
 
     def short_filename(self):
-        """Trim the `/groups/attachments/` part off the front of the filename."""
-        return self.file.name[19:]
+        """Display only the name of the file, sans its path within client_media."""
+        return os.path.basename(self.file.name)
 
 
 class AttachedFile(models.Model):
@@ -225,5 +227,5 @@ class AttachedFile(models.Model):
     )
 
     def short_filename(self):
-        """Trim the `/groups/attachments/` part off the front of the filename."""
-        return self.file.name[19:]
+        """Display only the name of the file, sans its path within client_media."""
+        return os.path.basename(self.file.name)
