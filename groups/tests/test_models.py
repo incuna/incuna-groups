@@ -231,6 +231,7 @@ class TestFileComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype_id',
             'basecomment_ptr',
             'basecomment_ptr_id',
+            'attachedfilecomment',
         ]
         self.assertCountEqual(fields, expected)
 
