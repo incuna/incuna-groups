@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.core import signing
 from django.core.urlresolvers import reverse
@@ -204,9 +206,26 @@ class TextComment(BaseComment):
 
 class FileComment(BaseComment):
     """A comment with an uploaded file. No text."""
-    file = models.FileField(upload_to='groups/file_comments')
+    file = models.FileField(upload_to='groups/attachments')
     template_name = 'groups/file_comment.html'
 
     def short_filename(self):
-        """Trim the `/groups/file_comments/` part off the front of the filename."""
-        return self.file.name[21:]
+        """Display only the name of the file, sans its path within client_media."""
+        return os.path.basename(self.file.name)
+
+
+class AttachedFile(models.Model):
+    """A file upload that can be attached to a comment."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='attachments')
+    date_created = models.DateTimeField(default=timezone.now)
+    file = models.FileField(upload_to='groups/attachments')
+    attached_to = models.ForeignKey(
+        'groups.BaseComment',
+        blank=True,
+        null=True,
+        related_name='attachments'
+    )
+
+    def short_filename(self):
+        """Display only the name of the file, sans its path within client_media."""
+        return os.path.basename(self.file.name)

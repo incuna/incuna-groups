@@ -3,7 +3,8 @@
 
 {% block comment_visible %}
     <p>
-        Uploaded a file:
+        Attached file:
         <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
     </p>
+    {% include "groups/_comment_attachments.html" %}
 {% endblock comment_visible %}
