@@ -2,5 +2,9 @@
 {% load static %}
 
 {% block comment_visible %}
-    {% include "groups/file_comment_inner.html" %}
+    <p>
+        Attached file:
+        <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
+    </p>
+    {% include "groups/_comment_attachments.html" %}
 {% endblock comment_visible %}

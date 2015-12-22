@@ -1,0 +1,8 @@
+{% load static %}
+
+{% for attachment in comment.attachments.all %}
+    <p>
+        Attached file:
+        <a href="{% get_media_prefix %}{{ attachment.file }}">{{ attachment.short_filename }}</a>
+    </p>
+{% endfor %}

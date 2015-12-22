@@ -1,8 +1,0 @@
-{% load static %}
-<p>
-    Attached file:
-    <a href="{% get_media_prefix %}{{ comment.file }}">{{ comment.short_filename }}</a>
-</p>
-{% for attachment in comment.attachments.all %}
-    {% include "groups/file_comment_inner.html" with comment=attachment %}
-{% endfor %}
