@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.2.1
+
+- Fix a longtime error involving a missing `includes/_pagination.html` template.
+
 ## v3.2.0
 
 - Allow admin classes for `incuna-groups`' models to be customised easily through its
