@@ -9,6 +9,7 @@ setup(
     install_requires=[
         'django_crispy_forms>=1.4.0,<2',
         'django-polymorphic>=0.7.2,<1',
+        'incuna-pagination>=0.1.1,<1',
     ],
     description='Generic group/forum framework.',
     author='Incuna Ltd',
