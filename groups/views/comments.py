@@ -18,37 +18,6 @@ from .. import forms, models
 NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
 
-class DiscussionThread(CommentPostView):
-    """Allow a user to read and comment on a Discussion."""
-    form_class = forms.AddTextComment
-    subscribe_form_class = forms.SubscribeForm
-    template_name = 'groups/discussion_thread.html'
-
-    def get_queryset(self):
-        """
-        Display the comments attached to a given discussion, newest at the bottom.
-
-        Use the CommentManager's with_user_may_delete method to annotate each comment
-        with a value denoting if it can be deleted by the current user. This allows us
-        to conditionally display the delete link in the template.
-        """
-        return self.discussion.comments.with_user_may_delete(self.request.user)
-
-    def get_context_data(self, *args, **kwargs):
-        """Attach the discussion and its existing comments to the context."""
-        context = super(DiscussionThread, self).get_context_data(*args, **kwargs)
-        discussion = self.discussion
-        form = self.subscribe_form_class(
-            user=self.request.user,
-            instance=discussion,
-            url_name='discussion-subscribe',
-        )
-        context['comments'] = self.get_queryset()
-        context['group'] = discussion.group
-        context['discussion-subscribe-form'] = form
-        return context
-
-
 class CommentUploadFile(CommentPostView):
     """Posts a file to a particular discussion."""
     form_class = forms.AddFileComment
@@ -126,20 +95,23 @@ class CommentPostByEmail(CommentEmailMixin, View):
         return match.group('uuid').replace('$', ':')
 
     @staticmethod
-    def create_file_comments(request, user, discussion):
+    def create_file_attachments(request, user, comment):
         """
-        Create any number of file comments from the attachments in this message.
+        Create any number of file attachments from the attachments in this message.
 
         Mailgun provides an entry called `attachment-count` to store the number
         of attachments, then each attachment is a separate entry, `attachment-x` where
         `x` is a number.
         """
-        for attachment in request.FILES.values():
-            models.FileComment.objects.create(
+        files = [
+            models.AttachedFile(
                 file=attachment,
                 user=user,
-                discussion=discussion,
+                attached_to=comment,
             )
+            for attachment in request.FILES.values()
+        ]
+        models.AttachedFile.objects.bulk_create(files)
 
     def post(self, request, *args, **kwargs):
         """Create a new comment to self.pk."""
@@ -149,15 +121,14 @@ class CommentPostByEmail(CommentEmailMixin, View):
 
         user = target['user']
         discussion = target['discussion']
-
-        self.create_file_comments(request, user, discussion)
-
         content = message['stripped-text']
+
         comment = models.TextComment.objects.create(
             body=content,
             user=user,
             discussion=discussion,
         )
-        self.email_subscribers(comment)
 
+        self.create_file_attachments(request, user, comment)
+        self.email_subscribers(comment)
         return HttpResponse(status=200)

@@ -118,7 +118,7 @@ class TestCommentPostByEmail(RequestTestCase):
     extract_path = 'groups.views.comments.CommentPostByEmail.extract_uuid_from_email'
     uuid_path = 'groups.views.comments.CommentPostByEmail.get_uuid_data'
     email_path = 'groups.views.comments.CommentEmailMixin.email_subscribers'
-    file_create_path = 'groups.views.comments.CommentPostByEmail.create_file_comments'
+    file_create_path = 'groups.views.comments.CommentPostByEmail.create_file_attachments'
 
     def generate_uuid(self, discussion_pk, user_pk):
         """Generate a UUID in the same way as a discussion."""
@@ -172,20 +172,20 @@ class TestCommentPostByEmail(RequestTestCase):
                 self.create_request()
             )
 
-    def test_create_file_comments(self):
-        """Assert that a file comment is created for each attachment in request.FILES."""
-        discussion = factories.DiscussionFactory.create()
-        user = discussion.creator
+    def test_create_file_attachments(self):
+        """Assert that an AttachedFile is created for each attachment in request.FILES."""
+        comment = factories.TextCommentFactory.create()
+        attached_file = factories.AttachedFileFactory.build().file
+        request = mock.MagicMock(FILES={'attachment-1': attached_file})
 
-        # Let's use mocking and trust that Manager.create() works rather than generate
-        # an actual file.
-        file = "I am a file and I'm digging a hole"
-        request = mock.MagicMock(FILES={'attachment-1': file})
-
-        with mock.patch.object(models.FileComment.objects, 'create') as file_create:
-            self.view_class.create_file_comments(request, user, discussion)
-
-        file_create.assert_called_once_with(file=file, user=user, discussion=discussion)
+        self.view_class.create_file_attachments(request, comment.user, comment)
+        self.assertTrue(
+            models.AttachedFile.objects.filter(
+                file=attached_file,
+                user=comment.user,
+                attached_to=comment,
+            ).exists()
+        )
 
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
@@ -211,7 +211,7 @@ class TestCommentPostByEmail(RequestTestCase):
         with mock.patch(self.extract_path, return_value='uuid') as extract_uuid:
             with mock.patch(self.uuid_path, return_value=uuid_data):
                 with mock.patch(self.email_path) as email_subscribers:
-                    with mock.patch(self.file_create_path) as create_file_comments:
+                    with mock.patch(self.file_create_path) as create_file_attachments:
                         response = view(request, uuid='use of this is mocked out')
 
         # Mailgun likes to receive confirmation, so it's important we send a HTTP200 to
@@ -225,5 +225,5 @@ class TestCommentPostByEmail(RequestTestCase):
         # Assert that we've respected the recipient when generating the UUID, created
         # file comments out of any attachments, and emailed any subscribers.
         extract_uuid.assert_called_once_with(request_data['recipient'], request)
-        create_file_comments.assert_called_once_with(request, user, discussion)
+        create_file_attachments.assert_called_once_with(request, user, comment)
         email_subscribers.assert_called_once_with(comment)
