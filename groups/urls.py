@@ -34,6 +34,11 @@ urlpatterns = [
             name='comment-upload-file',
         ),
         url(
+            r'^post-with-attachment/$',
+            comments.CommentPostWithAttachment.as_view(),
+            name='comment-post-with-attachment',
+        ),
+        url(
             r'^subscribe/$',
             subscriptions.DiscussionSubscribe.as_view(),
             name='discussion-subscribe',

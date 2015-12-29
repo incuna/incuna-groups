@@ -24,6 +24,21 @@ class CommentUploadFile(CommentPostView):
     template_name = 'groups/comment_upload_file.html'
 
 
+class CommentPostWithAttachment(CommentPostView):
+    """Posts a text comment with an attached file to a particular discussion."""
+    form_class = forms.AddTextCommentWithAttachment
+    template_name = 'groups/comment_upload_file.html'
+
+    def form_valid(self, form):
+        response = super(CommentPostWithAttachment, self).form_valid(form)
+        models.AttachedFile.objects.create(
+            file=form.file,
+            user=self.object.user,
+            comment=self.object,
+        )
+        return response
+
+
 class CommentDelete(DeleteView):
     """
     Deletes a particular comment after confirming with an 'Are you sure?' page.

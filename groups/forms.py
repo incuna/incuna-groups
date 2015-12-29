@@ -54,6 +54,25 @@ class AddFileComment(BaseAddCommentForm):
         model = models.FileComment
 
 
+class AddTextCommentWithAttachment(BaseAddCommentForm):
+    file = forms.FileField()
+
+    def build_helper(self):
+        helper = super(AddTextCommentWithAttachment, self).build_helper()
+        helper.layout = Layout(
+            'body',
+            'file',
+            FormActions(
+                StrictButton('Upload and post', type='submit'),
+            ),
+        )
+        return helper
+
+    class Meta:
+        fields = ('body', 'file',)
+        model = models.TextComment
+
+
 class DiscussionCreate(forms.Form):
     comment = forms.CharField(widget=forms.Textarea)
     name = forms.CharField(max_length=255)
