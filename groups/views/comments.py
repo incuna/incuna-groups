@@ -32,9 +32,9 @@ class CommentPostWithAttachment(CommentPostView):
     def form_valid(self, form):
         response = super(CommentPostWithAttachment, self).form_valid(form)
         models.AttachedFile.objects.create(
-            file=form.file,
+            file=form.cleaned_data['file'],
             user=self.object.user,
-            comment=self.object,
+            attached_to=self.object,
         )
         return response
 
