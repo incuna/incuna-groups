@@ -61,6 +61,14 @@ class TestGroupUrls(URLTestCase):
             url_kwargs={'pk': self.pk}
         )
 
+    def test_comment_post_with_attachment(self):
+        self.assert_url_matches_view(
+            comments.CommentPostWithAttachment,
+            '/groups/discussions/{}/post-with-attachment/'.format(self.pk),
+            'comment-post-with-attachment',
+            url_kwargs={'pk': self.pk}
+        )
+
     def test_comment_delete(self):
         self.assert_url_matches_view(
             comments.CommentDelete,
