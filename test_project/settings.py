@@ -23,6 +23,7 @@ INSTALLED_APPS = (
     'groups.tests',
 
     'crispy_forms',
+    'pagination',
     'polymorphic',
 
     # Put contenttypes before auth to work around test issue.

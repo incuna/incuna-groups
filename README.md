@@ -3,11 +3,11 @@
 An extensible Django app that provides forum functionality.
 - Administrators can create discussion groups.
 - Users can create discussions on groups, and comment on those discussions.
-- Users can also subscribe to groups and/or discussions to receive notifications from them, and post responses by replying to the notification emails. 
+- Users can also subscribe to groups and/or discussions to receive notifications from them, and post responses by replying to the notification emails.
 
 ## Installation
 
-`incuna-groups` is on PyPI, so you can install it with `pip install incuna-groups`.  Add `groups` to your `INSTALLED_APPS`.
+`incuna-groups` is on PyPI, so you can install it with `pip install incuna-groups`.  Add both `groups` and `pagination` (for `incuna-pagination`, a dependency) to your `INSTALLED_APPS`.
 
 This project contains migrations, so run `python manage.py migrate` before using it.
 
@@ -17,7 +17,7 @@ This project contains migrations, so run `python manage.py migrate` before using
 
 Some straightforward customisation is exposed through the `AppConfig` (which by default is `groups.apps.GroupsConfig`) and the templates can all be overridden easily.
 
-Each page template has a `base` version that the page template itself directly `extends`, meaning you can replace the page template but still make use of all of the blocks and other HTML in the original.  For instance, `discussion_thread.html` does nothing other than extend `discussion_thread_base.html`.  You can override `discussion_thread.html`, extend `discussion_thread_base.html` in the same way, and change the content of, say, a single block, rather than having to copy and paste the entirety of the discussion thread template in and modify from there. 
+Each page template has a `base` version that the page template itself directly `extends`, meaning you can replace the page template but still make use of all of the blocks and other HTML in the original.  For instance, `discussion_thread.html` does nothing other than extend `discussion_thread_base.html`.  You can override `discussion_thread.html`, extend `discussion_thread_base.html` in the same way, and change the content of, say, a single block, rather than having to copy and paste the entirety of the discussion thread template in and modify from there.
 
 ### Models
 
@@ -30,7 +30,7 @@ There are three main models that everything revolves around, one of which is pol
   * `FileComment`: A comment containing an uploaded file.
 
 Each of the three main models also has a custom queryset (which is then used by its manager) with several additional methods.  Most of them allow fetching of recently active items or accessing groups/discussions/comments related to any instance of any of the three.  These querysets and methods can be found in `managers.py`.
-  
+
 ### Views and admin pages
 
 There are a lot of different views that come together to make the forums work.
