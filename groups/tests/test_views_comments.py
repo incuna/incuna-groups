@@ -174,19 +174,18 @@ class TestCommentPostByEmail(RequestTestCase):
 
     def test_create_file_attachments(self):
         """Assert that an AttachedFile is created for each attachment in request.FILES."""
-        discussion = factories.DiscussionFactory.create()
-        user = discussion.creator
-
-        # Let's use mocking and trust that Manager.create() works rather than generate
-        # an actual file.
-        file = "I am a file and I'm digging a hole"
-        request = mock.MagicMock(FILES={'attachment-1': file})
         comment = factories.TextCommentFactory.create()
+        attached_file = factories.AttachedFileFactory.build().file
+        request = mock.MagicMock(FILES={'attachment-1': attached_file})
 
-        with mock.patch.object(models.AttachedFile.objects, 'create') as file_create:
-            self.view_class.create_file_attachments(request, user, comment)
-
-        file_create.assert_called_once_with(file=file, user=user, attached_to=comment)
+        self.view_class.create_file_attachments(request, comment.user, comment)
+        self.assertTrue(
+            models.AttachedFile.objects.filter(
+                file=attached_file,
+                user=comment.user,
+                attached_to=comment,
+            ).exists()
+        )
 
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
