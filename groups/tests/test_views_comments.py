@@ -48,6 +48,46 @@ class TestCommentUploadFile(Python2AssertMixin, RequestTestCase):
         self.assertEqual(created_comment.user, request.user)
 
 
+class TestCommentPostWithAttachment(Python2AssertMixin, RequestTestCase):
+    view_class = comments.CommentPostWithAttachment
+
+    def make_datetime(self, year, month, day):
+        return datetime.datetime(year, month, day, tzinfo=pytz.utc)
+
+    def test_get(self):
+        discussion = factories.DiscussionFactory.create()
+        request = self.create_request()
+        view = self.view_class.as_view()
+
+        response = view(request, pk=discussion.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['discussion'], discussion)
+
+    def test_post(self):
+        discussion = factories.DiscussionFactory.create()
+        uploadable_file = factories.FileCommentFactory.build().file.file
+        body = 'I am a comment'
+        data = {'body': body, 'file': uploadable_file}
+
+        # Hit the view, passing in the necessaries.
+        request = self.create_request('post', data=data)
+        view = self.view_class.as_view()
+        view(request, pk=discussion.pk)
+
+        # Assert that one comment was created with the appropriate properties.
+        created_comment = models.TextComment.objects.get(discussion=discussion)
+        self.assertEqual(created_comment.discussion, discussion)
+        self.assertEqual(created_comment.user, request.user)
+
+        # The comment also has one attachment containing the uploaded file.
+        # We can't directly test for file equality (since it gets copied under a
+        # different name) but we can assert both files have the same size as an
+        # approximation.
+        attachment = created_comment.attachments.get()
+        self.assertEqual(attachment.user, request.user)
+        self.assertEqual(attachment.file.file.size, uploadable_file.size)
+
+
 class TestCommentDelete(RequestTestCase):
     view_class = comments.CommentDelete
 
