@@ -57,6 +57,12 @@ class AddFileComment(BaseAddCommentForm):
 class AddTextCommentWithAttachment(BaseAddCommentForm):
     file = forms.FileField()
 
+    def __init__(self, *args, **kwargs):
+        """Add nicer field labels."""
+        super(AddTextCommentWithAttachment, self).__init__(*args, **kwargs)
+        self.fields['body'].label = 'Comment'
+        self.fields['file'].label = 'Attachment'
+
     def build_helper(self):
         helper = super(AddTextCommentWithAttachment, self).build_helper()
         helper.layout = Layout(
