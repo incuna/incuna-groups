@@ -18,7 +18,13 @@ class GroupDetail(ListView):
     template_name = 'groups/group_detail.html'
     subscribe_form_class = forms.SubscribeForm
 
+    def dispatch(self, request, *args, **kwargs):
+        """Get the group object we're accessing according to the pk in the URL."""
+        self.group = get_object_or_404(models.Group, pk=self.kwargs['pk'])
+        return super(GroupDetail, self).dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
+        """Return all discussions on the particular group we're using."""
         return super(GroupDetail, self).get_queryset().filter(group=self.group)
 
     def get_context_data(self, *args, **kwargs):
@@ -30,7 +36,3 @@ class GroupDetail(ListView):
             url_name='group-subscribe',
         )
         return context
-
-    def dispatch(self, request, *args, **kwargs):
-        self.group = get_object_or_404(models.Group, pk=self.kwargs['pk'])
-        return super(GroupDetail, self).dispatch(request, *args, **kwargs)
