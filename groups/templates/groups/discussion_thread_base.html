@@ -28,5 +28,5 @@
 
     {% crispy form %}
 
-    <p><a href="{% url 'comment-upload-file' pk=discussion.pk %}">Upload a file to this discussion</a></p>
+    <p><a href="{% url 'comment-post-with-attachment' pk=discussion.pk %}">Upload a file to this discussion</a></p>
 {% endblock groups_main_content %}
