@@ -9,7 +9,8 @@ class TestGroupList(Python2AssertMixin, RequestTestCase):
     view_class = groups.GroupList
 
     def test_get(self):
-        groups = factories.GroupFactory.create_batch(2)
+        group_last = factories.GroupFactory.create(name='zzzz')
+        group_first = factories.GroupFactory.create(name='aaaa')
 
         request = self.create_request()
         view = self.view_class.as_view()
@@ -17,7 +18,7 @@ class TestGroupList(Python2AssertMixin, RequestTestCase):
         response = view(request)
         self.assertEqual(response.status_code, 200)
         object_list = response.context_data['object_list']
-        self.assertCountEqual(groups, object_list)
+        self.assertCountEqual(object_list, [group_first, group_last])
 
 
 class TestGroupDetail(RequestTestCase):

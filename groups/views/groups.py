@@ -7,8 +7,8 @@ from .. import forms, models
 class GroupList(ListView):
     """Show a top-level list of discussion groups."""
     model = models.Group
-    paginate_by = 5
     template_name = 'groups/group_list.html'
+    ordering = 'name'
 
 
 class GroupDetail(ListView):
