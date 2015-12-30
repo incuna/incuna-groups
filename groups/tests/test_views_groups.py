@@ -27,7 +27,29 @@ class TestGroupDetail(RequestTestCase):
     view_class = groups.GroupDetail
 
     def test_get(self):
+        """
+        Test that the right discussions are displayed in the right order.
+
+        Discussions are shown in descending order of how recently they were updated, and
+        only if they exist on the specified group.
+        """
         group = factories.GroupFactory.create()
+        factories.DiscussionFactory.create()  # An unrelated discussion - won't show up.
+        discussion_oldest = factories.DiscussionFactory.create(group=group)
+        discussion_newest = factories.DiscussionFactory.create(group=group)
+        discussion_middle = factories.DiscussionFactory.create(group=group)
+        factories.BaseCommentFactory.create(
+            date_created=datetime.datetime(3970, 1, 1),
+            discussion=discussion_newest,
+        )
+        factories.BaseCommentFactory.create(
+            date_created=datetime.datetime(2970, 1, 1),
+            discussion=discussion_middle,
+        )
+        factories.BaseCommentFactory.create(
+            date_created=datetime.datetime(1970, 1, 1),
+            discussion=discussion_oldest,
+        )
 
         request = self.create_request()
         view = self.view_class.as_view()
@@ -37,23 +59,6 @@ class TestGroupDetail(RequestTestCase):
         detail_object = response.context_data['group']
         self.assertEqual(group, detail_object)
 
-    def test_get_queryset(self):
-        """Discussions are shown in descending order of how recently they were updated."""
-        group = factories.GroupFactory.create()
-        factories.DiscussionFactory.create()  # An unrelated discussion - won't show up.
-        discussion_oldest = factories.DiscussionFactory.create(group=group)
-        discussion_newest = factories.DiscussionFactory.create(group=group)
-        factories.BaseCommentFactory.create(
-            date_created=datetime.datetime(2970, 1, 1),
-            discussion=discussion_newest,
-        )
-        factories.BaseCommentFactory.create(
-            date_created=datetime.datetime(1970, 1, 1),
-            discussion=discussion_oldest,
-        )
-
-        view = self.view_class(request=self.create_request())
-        view.group = group
-
-        queryset = view.get_queryset()
-        self.assertSequenceEqual(queryset, [discussion_newest, discussion_oldest])
+        discussions = response.context_data['object_list']
+        expected = [discussion_newest, discussion_middle, discussion_oldest]
+        self.assertSequenceEqual(discussions, expected)
