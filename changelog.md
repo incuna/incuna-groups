@@ -2,6 +2,12 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v3.3.0
+
+- Add a new page that allows a user to post a comment with one attached file. This is
+  currently linked to from the discussion thread view in lieu of the existing
+  "upload a file" page, but the latter hasn't been removed.
+
 ## v3.2.1
 
 - Fix a longtime error involving a missing `includes/_pagination.html` template.
