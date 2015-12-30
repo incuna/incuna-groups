@@ -16,7 +16,7 @@ class GroupList(ListView):
 class GroupDetail(ListView):
     """Show the discussions belonging to a group."""
     model = models.Discussion
-    paginate_by = 5
+    paginate_by = 10
     template_name = 'groups/group_detail.html'
     subscribe_form_class = forms.SubscribeForm
 
