@@ -1,3 +1,5 @@
+import datetime
+
 from incuna_test_utils.compat import Python2AssertMixin
 
 from . import factories
@@ -34,3 +36,24 @@ class TestGroupDetail(RequestTestCase):
         self.assertEqual(response.status_code, 200)
         detail_object = response.context_data['group']
         self.assertEqual(group, detail_object)
+
+    def test_get_queryset(self):
+        """Discussions are shown in descending order of how recently they were updated."""
+        group = factories.GroupFactory.create()
+        factories.DiscussionFactory.create()  # An unrelated discussion - won't show up.
+        discussion_oldest = factories.DiscussionFactory.create(group=group)
+        discussion_newest = factories.DiscussionFactory.create(group=group)
+        factories.BaseCommentFactory.create(
+            date_created=datetime.datetime(2970, 1, 1),
+            discussion=discussion_newest,
+        )
+        factories.BaseCommentFactory.create(
+            date_created=datetime.datetime(1970, 1, 1),
+            discussion=discussion_oldest,
+        )
+
+        view = self.view_class(request=self.create_request())
+        view.group = group
+
+        queryset = view.get_queryset()
+        self.assertSequenceEqual(queryset, [discussion_newest, discussion_oldest])
