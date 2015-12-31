@@ -2,6 +2,11 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v4.0.0
+
+- Remove FileComment.
+- Improve ordering on the list of groups and a group's discussion list.
+
 ## v3.3.0
 
 - Add a new page that allows a user to post a comment with one attached file. This is
