@@ -98,9 +98,6 @@ class Discussion(models.Model):
     def get_latest_comment(self):
         return self.comments.latest('date_created')
 
-    def get_date_updated(self):
-        return self.get_latest_comment().date_created
-
     def get_total_replies(self):
         return self.comments.count()
 

@@ -126,17 +126,6 @@ class TestDiscussion(Python2AssertMixin, TestCase):
 
         self.assertEqual(discussion.get_latest_comment(), latest)
 
-    def test_get_date_updated(self):
-        """This method returns the creation date of the most recent comment."""
-        discussion = factories.DiscussionFactory.create()
-        latest = factories.BaseCommentFactory.create(discussion=discussion)
-        factories.BaseCommentFactory.create(
-            discussion=discussion,
-            date_created=datetime.datetime(1970, 1, 1),
-        )
-
-        self.assertEqual(discussion.get_date_updated(), latest.date_created)
-
 
 class TestBaseComment(Python2AssertMixin, TestCase):
     def test_fields(self):
