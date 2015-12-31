@@ -1,5 +1,3 @@
-from operator import methodcaller
-
 from django.shortcuts import get_object_or_404
 from django.views.generic import ListView
 
@@ -19,6 +17,7 @@ class GroupDetail(ListView):
     paginate_by = 10
     template_name = 'groups/group_detail.html'
     subscribe_form_class = forms.SubscribeForm
+    ordering = ['-last_updated']
 
     def dispatch(self, request, *args, **kwargs):
         """Get the group object we're accessing according to the pk in the URL."""
@@ -27,21 +26,12 @@ class GroupDetail(ListView):
 
     def get_queryset(self):
         """Return all discussions on the particular group we're using."""
-        return super(GroupDetail, self).get_queryset().filter(group=self.group)
-
-    def sort_object_list(self, object_list):
-        """
-        Order the list of discussions by time of most recent update.
-
-        Since this sorting irreversibly turns a queryset into a list, it's been separated
-        from get_queryset() to allow for extensibility on the latter.
-        """
-        return sorted(object_list, key=methodcaller('get_date_updated'), reverse=True)
+        discussions = super(GroupDetail, self).get_queryset()
+        return discussions.for_group(self.group).with_last_updated()
 
     def get_context_data(self, *args, **kwargs):
         """Sort the object list and allow the group to be displayed properly."""
         context = super(GroupDetail, self).get_context_data(*args, **kwargs)
-        context['object_list'] = self.sort_object_list(context['object_list'])
         context['group'] = self.group
         context['group-subscribe-form'] = self.subscribe_form_class(
             user=self.request.user,
