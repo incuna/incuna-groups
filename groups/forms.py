@@ -37,31 +37,8 @@ class AddTextComment(BaseAddCommentForm):
         model = models.TextComment
 
 
-class AddFileComment(BaseAddCommentForm):
-    """A form that uploads FileComments."""
-    def build_helper(self):
-        helper = super(AddFileComment, self).build_helper()
-        helper.layout = Layout(
-            'file',
-            FormActions(
-                StrictButton('Upload this file', type='submit'),
-            ),
-        )
-        return helper
-
-    class Meta:
-        fields = ('file',)
-        model = models.FileComment
-
-
 class AddTextCommentWithAttachment(BaseAddCommentForm):
     file = forms.FileField()
-
-    def __init__(self, *args, **kwargs):
-        """Add nicer field labels."""
-        super(AddTextCommentWithAttachment, self).__init__(*args, **kwargs)
-        self.fields['body'].label = 'Comment'
-        self.fields['file'].label = 'Attachment'
 
     def build_helper(self):
         helper = super(AddTextCommentWithAttachment, self).build_helper()
@@ -75,8 +52,12 @@ class AddTextCommentWithAttachment(BaseAddCommentForm):
         return helper
 
     class Meta:
-        fields = ('body', 'file',)
         model = models.TextComment
+        fields = ('body', 'file',)
+        labels = {
+            'body': 'Comment',
+            'file': 'Attachment',
+        }
 
 
 class DiscussionCreate(forms.Form):

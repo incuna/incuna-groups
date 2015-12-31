@@ -18,16 +18,10 @@ from .. import forms, models
 NEW_COMMENT_SUBJECT = apps.get_app_config('groups').new_comment_subject
 
 
-class CommentUploadFile(CommentPostView):
-    """Posts a file to a particular discussion."""
-    form_class = forms.AddFileComment
-    template_name = 'groups/comment_upload_file.html'
-
-
 class CommentPostWithAttachment(CommentPostView):
     """Posts a text comment with an attached file to a particular discussion."""
     form_class = forms.AddTextCommentWithAttachment
-    template_name = 'groups/comment_upload_file.html'
+    template_name = 'groups/comment_post_with_attachment.html'
 
     def form_valid(self, form):
         response = super(CommentPostWithAttachment, self).form_valid(form)

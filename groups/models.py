@@ -204,16 +204,6 @@ class TextComment(BaseComment):
     template_name = 'groups/text_comment.html'
 
 
-class FileComment(BaseComment):
-    """A comment with an uploaded file. No text."""
-    file = models.FileField(upload_to='groups/attachments')
-    template_name = 'groups/file_comment.html'
-
-    def short_filename(self):
-        """Display only the name of the file, sans its path within client_media."""
-        return os.path.basename(self.file.name)
-
-
 class AttachedFile(models.Model):
     """A file upload that can be attached to a comment."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='attachments')

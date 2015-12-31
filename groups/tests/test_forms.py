@@ -54,40 +54,6 @@ class TestAddTextComment(Python2AssertMixin, RequestTestCase):
         self.assertEqual(button.get('type'), 'submit')
 
 
-class TestAddFileComment(Python2AssertMixin, RequestTestCase):
-    form = forms.AddFileComment
-    model = models.FileComment
-
-    def test_form_fields(self):
-        expected = ['file']
-        fields = self.form.base_fields.keys()
-        self.assertCountEqual(fields, expected)
-
-    def test_form_valid(self):
-        file_data = {'file': uploadable_file()}
-        form = self.form(files=file_data)
-        self.assertTrue(form.is_valid(), msg=form.errors)
-
-    def test_form_not_valid(self):
-        form = self.form(data={})
-        self.assertFalse(form.is_valid())
-        self.assertIn('file', form.errors)
-
-    def test_submit_not_input(self):
-        """The form does not have a submit <input>."""
-        form = self.form()
-        self.assertFalse(has_submit(form))
-
-    def test_submit_button(self):
-        """
-        The form has a submit <button>.
-
-        This allows for more flexibility in styling.
-        """
-        button = get_button(self.form())
-        self.assertEqual(button.get('type'), 'submit')
-
-
 class TestAddTextCommentWithAttachment(Python2AssertMixin, RequestTestCase):
     form = forms.AddTextCommentWithAttachment
     model = models.TextComment
