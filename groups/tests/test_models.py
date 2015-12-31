@@ -130,7 +130,6 @@ class TestBaseComment(Python2AssertMixin, TestCase):
             'polymorphic_ctype',
             'polymorphic_ctype_id',
             'textcomment',
-            'filecomment',
         ]
         self.assertCountEqual(fields, expected)
 
@@ -211,33 +210,6 @@ class TestTextComment(Python2AssertMixin, TestCase):
             'basecomment_ptr_id',
         ]
         self.assertCountEqual(fields, expected)
-
-
-class TestFileComment(Python2AssertMixin, TestCase):
-    def test_fields(self):
-        fields = models.FileComment._meta.get_all_field_names()
-        expected = [
-            'id',
-            'file',
-            'discussion',
-            'discussion_id',
-            'user',
-            'user_id',
-            'date_created',
-            'state',
-            'attachments',
-
-            'polymorphic_ctype',
-            'polymorphic_ctype_id',
-            'basecomment_ptr',
-            'basecomment_ptr_id',
-        ]
-        self.assertCountEqual(fields, expected)
-
-    def test_short_filename(self):
-        filename = '/groups/file_comments/test_file_comment.txt'
-        comment = factories.FileCommentFactory.create(file__filename=filename)
-        self.assertEqual(comment.short_filename(), 'test_file_comment.txt')
 
 
 class TestAttachedFile(Python2AssertMixin, TestCase):

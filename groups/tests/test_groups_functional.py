@@ -36,32 +36,17 @@ class TestGroupDetail(RenderedContentTestCase):
 class TestDiscussionThread(RenderedContentTestCase):
     view = discussions.DiscussionThread
 
-    def test_text_comment_display(self):
+    def test_thread_display(self):
         comment_body = 'I am a comment and proud of it!'
-        comment = factories.TextCommentFactory.create(
-            body=comment_body,
-        )
+        comment = factories.TextCommentFactory.create(body=comment_body)
+        attachment = factories.AttachedFileFactory.create(attached_to=comment)
         discussion = comment.discussion
 
         expected_content = {
             discussion.name: True,
             comment_body: True,
-            str(comment.user): True,
-            reverse('discussion-subscribe', kwargs={'pk': discussion.pk}): True,
-            'Post comment': True,  # The label on the 'add comment' button
-            'type="submit"': True,  # The button itself
-        }
-
-        self.render_view_and_assert_content(expected_content, pk=discussion.pk)
-
-    def test_file_comment_display(self):
-        comment = factories.FileCommentFactory.create()
-        discussion = comment.discussion
-
-        expected_content = {
-            discussion.name: True,
-            comment.file.url: True,
-            comment.file.name: True,
+            attachment.file.url: True,
+            attachment.file.name: True,
             str(comment.user): True,
             reverse('discussion-subscribe', kwargs={'pk': discussion.pk}): True,
             'Post comment': True,  # The label on the 'add comment' button

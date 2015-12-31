@@ -29,11 +29,6 @@ urlpatterns = [
             name='discussion-thread',
         ),
         url(
-            r'^upload-file/$',
-            comments.CommentUploadFile.as_view(),
-            name='comment-upload-file',
-        ),
-        url(
             r'^post-with-attachment/$',
             comments.CommentPostWithAttachment.as_view(),
             name='comment-post-with-attachment',

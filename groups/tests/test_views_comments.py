@@ -17,37 +17,6 @@ from .. import models
 from ..views import comments
 
 
-class TestCommentUploadFile(Python2AssertMixin, RequestTestCase):
-    view_class = comments.CommentUploadFile
-
-    def make_datetime(self, year, month, day):
-        return datetime.datetime(year, month, day, tzinfo=pytz.utc)
-
-    def test_get(self):
-        discussion = factories.DiscussionFactory.create()
-        request = self.create_request()
-        view = self.view_class.as_view()
-
-        response = view(request, pk=discussion.pk)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context_data['discussion'], discussion)
-
-    def test_post(self):
-        discussion = factories.DiscussionFactory.create()
-        file = factories.FileCommentFactory.build().file.file
-        data = {'file': file}
-
-        # Hit the view, passing in the necessaries.
-        request = self.create_request('post', data=data)
-        view = self.view_class.as_view()
-        view(request, pk=discussion.pk)
-
-        # Assert that one comment was created with the appropriate properties.
-        created_comment = models.FileComment.objects.get(discussion=discussion)
-        self.assertEqual(created_comment.discussion, discussion)
-        self.assertEqual(created_comment.user, request.user)
-
-
 class TestCommentPostWithAttachment(Python2AssertMixin, RequestTestCase):
     view_class = comments.CommentPostWithAttachment
 
@@ -65,7 +34,7 @@ class TestCommentPostWithAttachment(Python2AssertMixin, RequestTestCase):
 
     def test_post(self):
         discussion = factories.DiscussionFactory.create()
-        uploadable_file = factories.FileCommentFactory.build().file.file
+        uploadable_file = factories.AttachedFileFactory.build().file.file
         body = 'I am a comment'
         data = {'body': body, 'file': uploadable_file}
 

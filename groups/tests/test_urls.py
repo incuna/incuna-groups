@@ -53,14 +53,6 @@ class TestGroupUrls(URLTestCase):
             url_kwargs={'pk': self.pk}
         )
 
-    def test_comment_upload_file(self):
-        self.assert_url_matches_view(
-            comments.CommentUploadFile,
-            '/groups/discussions/{}/upload-file/'.format(self.pk),
-            'comment-upload-file',
-            url_kwargs={'pk': self.pk}
-        )
-
     def test_comment_post_with_attachment(self):
         self.assert_url_matches_view(
             comments.CommentPostWithAttachment,
