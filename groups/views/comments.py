@@ -22,10 +22,11 @@ class CommentPostWithAttachment(CommentPostView):
     """Posts a text comment with an attached file to a particular discussion."""
     form_class = forms.AddTextCommentWithAttachment
     template_name = 'groups/comment_post_with_attachment.html'
+    attachment_model = models.AttachedFile
 
     def form_valid(self, form):
         response = super(CommentPostWithAttachment, self).form_valid(form)
-        models.AttachedFile.objects.create(
+        self.attachment_model.objects.create(
             file=form.cleaned_data['file'],
             user=self.object.user,
             attached_to=self.object,
