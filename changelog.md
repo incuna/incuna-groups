@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v4.0.1
+
+- Add a missing migration.
+
 ## v4.0.0
 
 - Remove FileComment.
