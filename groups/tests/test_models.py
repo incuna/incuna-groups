@@ -1,3 +1,5 @@
+import datetime
+
 from django.core import signing
 from django.test import TestCase
 from incuna_test_utils.compat import Python2AssertMixin
@@ -112,6 +114,17 @@ class TestDiscussion(Python2AssertMixin, TestCase):
 
         signed_data = discussion.generate_reply_uuid(user)
         self.assertEqual(signing.loads(signed_data), expected_data)
+
+    def test_get_latest_comment(self):
+        """This method returns the most recent comment."""
+        discussion = factories.DiscussionFactory.create()
+        latest = factories.BaseCommentFactory.create(discussion=discussion)
+        factories.BaseCommentFactory.create(
+            discussion=discussion,
+            date_created=datetime.datetime(1970, 1, 1),
+        )
+
+        self.assertEqual(discussion.get_latest_comment(), latest)
 
 
 class TestBaseComment(Python2AssertMixin, TestCase):

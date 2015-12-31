@@ -83,6 +83,9 @@ class DiscussionQuerySet(WithinDaysQuerySetMixin, models.QuerySet):
         User = get_user_model()
         return User.objects.filter(comments__discussion__in=self).distinct()
 
+    def with_last_updated(self):
+        return self.annotate(last_updated=models.Max('comments__date_created'))
+
 
 class CommentManagerMixin(WithinDaysQuerySetMixin):
     """

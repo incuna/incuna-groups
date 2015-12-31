@@ -164,6 +164,20 @@ class TestDiscussionManager(Python2AssertMixin, TestCase):
 
         self.assertCountEqual([discussion], models.Discussion.objects.within_time(delta))
 
+    def test_with_last_updated(self):
+        discussion = factories.DiscussionFactory.create()
+        latest = factories.TextCommentFactory.create(
+            discussion=discussion,
+            date_created=datetime.datetime(2970, 1, 1)
+        )
+        factories.TextCommentFactory.create(
+            discussion=discussion,
+            date_created=datetime.datetime(1970, 1, 1)
+        )
+
+        last_updated = models.Discussion.objects.with_last_updated()
+        self.assertEqual(last_updated.get().last_updated, latest.date_created)
+
 
 class TestCommentManager(Python2AssertMixin, TestCase):
     def test_for_group(self):

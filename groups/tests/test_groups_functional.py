@@ -24,6 +24,7 @@ class TestGroupDetail(RenderedContentTestCase):
     def test_detail_display(self):
         group = factories.GroupFactory.create()
         discussion = factories.DiscussionFactory.create(group=group)
+        factories.TextCommentFactory.create(discussion=discussion)
         expected_content = {
             group.name: True,
             discussion.name: True,
