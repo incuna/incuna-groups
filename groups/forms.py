@@ -36,6 +36,25 @@ class AddTextComment(BaseAddCommentForm):
     class Meta(BaseAddCommentForm.Meta):
         model = models.TextComment
 
+    def build_helper(self):
+        """Remove the label from the 'body' field first."""
+        # Look at all the things I tried :'(
+        body_field = self.fields.get('body')
+        body_field.widget.attrs['placeholder'] = 'Write your comment here...'
+        body_field.label = False
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.label_class = 'col-lg-0'
+        helper.field_class = 'col-lg-10'
+        helper.form_show_labels = False
+        helper.layout = Layout(
+            'body',
+            FormActions(
+                StrictButton('Post comment', type='submit'),
+            ),
+        )
+        return helper
+
 
 class AddTextCommentWithAttachment(BaseAddCommentForm):
     file = forms.FileField()
