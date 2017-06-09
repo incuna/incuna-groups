@@ -20,7 +20,6 @@ DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
 
 INSTALLED_APPS = (
     'groups',
-    'groups.tests',
 
     'crispy_forms',
     'pagination',
@@ -43,6 +42,9 @@ MIDDLEWARE_CLASSES = (
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            'groups/tests/templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
