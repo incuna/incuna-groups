@@ -10,7 +10,7 @@ from .. import models
 
 class TestGroup(Python2AssertMixin, TestCase):
     def test_fields(self):
-        fields = models.Group._meta.get_all_field_names()
+        fields = [f.name for f in models.Group._meta.get_fields()]
         expected = {
             'id',
             'name',
@@ -71,14 +71,12 @@ class TestGroup(Python2AssertMixin, TestCase):
 
 class TestDiscussion(Python2AssertMixin, TestCase):
     def test_fields(self):
-        fields = models.Discussion._meta.get_all_field_names()
+        fields = [f.name for f in models.Discussion._meta.get_fields()]
         expected = [
             'id',
             'name',
             'group',
-            'group_id',
             'creator',
-            'creator_id',
             'date_created',
             'subscribers',
             'ignorers',
@@ -129,19 +127,16 @@ class TestDiscussion(Python2AssertMixin, TestCase):
 
 class TestBaseComment(Python2AssertMixin, TestCase):
     def test_fields(self):
-        fields = models.BaseComment._meta.get_all_field_names()
+        fields = [f.name for f in models.BaseComment._meta.get_fields()]
         expected = [
             'id',
             'discussion',
-            'discussion_id',
             'user',
-            'user_id',
             'date_created',
             'state',
             'attachments',
 
             'polymorphic_ctype',
-            'polymorphic_ctype_id',
             'textcomment',
         ]
         self.assertCountEqual(fields, expected)
@@ -205,37 +200,31 @@ class TestBaseComment(Python2AssertMixin, TestCase):
 
 class TestTextComment(Python2AssertMixin, TestCase):
     def test_fields(self):
-        fields = models.TextComment._meta.get_all_field_names()
+        fields = [f.name for f in models.TextComment._meta.get_fields()]
         expected = [
             'id',
             'body',
             'discussion',
-            'discussion_id',
             'user',
-            'user_id',
             'date_created',
             'state',
             'attachments',
 
             'polymorphic_ctype',
-            'polymorphic_ctype_id',
             'basecomment_ptr',
-            'basecomment_ptr_id',
         ]
         self.assertCountEqual(fields, expected)
 
 
 class TestAttachedFile(Python2AssertMixin, TestCase):
     def test_fields(self):
-        fields = models.AttachedFile._meta.get_all_field_names()
+        fields = [f.name for f in models.AttachedFile._meta.get_fields()]
         expected = [
             'id',
             'file',
             'user',
-            'user_id',
             'date_created',
             'attached_to',
-            'attached_to_id',
         ]
         self.assertCountEqual(fields, expected)
 

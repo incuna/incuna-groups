@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core import signing
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.template import loader, RequestContext
+from django.template import loader
 from django.utils import timezone
 from polymorphic.models import PolymorphicModel
 
@@ -175,8 +175,7 @@ class BaseComment(PolymorphicModel):
         structure of `templates/groups/disucssion_thread_base.html`.
         """
         template = loader.get_template(self.template_name)
-        context = RequestContext(request, self.get_context_data())
-        return template.render(context)
+        return template.render(self.get_context_data(), request=request)
 
     def delete_state(self):
         """
