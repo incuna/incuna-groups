@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.template import loader, RequestContext
 from django.utils import timezone
-from polymorphic import PolymorphicModel
+from polymorphic.models import PolymorphicModel
 
 from . import managers
 
