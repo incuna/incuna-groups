@@ -1,3 +1,4 @@
+from django.conf import settings
 from incuna_test_utils.testcases.integration import BaseAdminIntegrationTestCase
 
 from . import factories
@@ -38,6 +39,8 @@ class TestGroupAdminDelete(GroupAdminTestCase):
 
 class TestDiscussionAdminChangelist(DiscussionAdminTestCase):
     def test_changelist(self):
+        from pprint import pprint
+        pprint(settings.__dict__)
         response = self.get_admin_changelist_page()
         self.assertEqual(response.status_code, 200)
 
