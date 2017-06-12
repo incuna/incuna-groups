@@ -39,8 +39,8 @@ class TestGroupAdminDelete(GroupAdminTestCase):
 
 class TestDiscussionAdminChangelist(DiscussionAdminTestCase):
     def test_changelist(self):
-        from pprint import pprint
-        pprint(settings.__dict__)
+        print(settings.INSTALLED_APPS)
+        print(settings.ROOT_URLCONF)
         response = self.get_admin_changelist_page()
         self.assertEqual(response.status_code, 200)
 
