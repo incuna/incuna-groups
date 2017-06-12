@@ -20,7 +20,6 @@ DEFAULT_FILE_STORAGE = 'inmemorystorage.InMemoryStorage'
 
 INSTALLED_APPS = (
     'groups',
-    'groups.tests',
 
     'crispy_forms',
     'pagination',
