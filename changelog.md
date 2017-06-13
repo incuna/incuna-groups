@@ -2,6 +2,10 @@
 
 This project uses Semantic Versioning (2.0).
 
+## v4.1.0
+
+- Support Django 1.10 and 1.11.
+
 ## v4.0.2
 
 - Make CommentPostWithAttachment slightly more extensible.
