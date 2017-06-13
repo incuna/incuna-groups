@@ -3,7 +3,7 @@ import datetime
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.db import models
-from polymorphic import PolymorphicManager, PolymorphicQuerySet
+from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 
 DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days

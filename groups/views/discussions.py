@@ -8,6 +8,7 @@ from incuna_mail import send
 from ._helpers import CommentPostView, get_reply_address
 from .. import forms, models
 
+
 NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
 
 
