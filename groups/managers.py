@@ -6,8 +6,7 @@ from django.db import models
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 
-def default_within_days():
-    return apps.get_app_config('groups').default_within_days
+DEFAULT_WITHIN_DAYS = apps.get_app_config('groups').default_within_days
 
 
 class WithinDaysQuerySetMixin:
@@ -28,16 +27,12 @@ class WithinDaysQuerySetMixin:
         return datetime.datetime.now() - timedelta
 
     @staticmethod
-    def get_threshold_date(within_days=None):
+    def get_threshold_date(within_days=DEFAULT_WITHIN_DAYS):
         """Return the earliest posting *date* an item can have and still be recent."""
-        if not within_days:
-            within_days = default_within_days()
         return datetime.date.today() - datetime.timedelta(days=within_days)
 
-    def within_days(self, days=None):
+    def within_days(self, days=DEFAULT_WITHIN_DAYS):
         """All users that created an item within the last `days` days."""
-        if not days:
-            days = default_within_days()
         return self.since(self.get_threshold_date(days))
 
     def within_time(self, timedelta):

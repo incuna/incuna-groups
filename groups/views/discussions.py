@@ -9,6 +9,9 @@ from ._helpers import CommentPostView, get_reply_address
 from .. import forms, models
 
 
+NEW_DISCUSSION_SUBJECT = apps.get_app_config('groups').new_discussion_subject
+
+
 class DiscussionCreate(FormView):
     """Start a new discussion by writing its first comment."""
     form_class = forms.DiscussionCreate
@@ -45,11 +48,10 @@ class DiscussionCreate(FormView):
     def email_subscribers(self, discussion):
         """Notify all subscribers to the discussion's parent group, except its creator."""
         users = discussion.group.watchers.exclude(pk=self.request.user.pk)
-        subject = apps.get_app_config('groups').new_discussion_subject
         for user in users:
             send(
                 to=user.email,
-                subject=subject.format(group=discussion.group.name),
+                subject=NEW_DISCUSSION_SUBJECT.format(group=discussion.group.name),
                 template_name='groups/emails/new_discussion.txt',
                 reply_to=get_reply_address(discussion, user, self.request),
                 context={
