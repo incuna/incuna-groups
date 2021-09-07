@@ -10,7 +10,7 @@ flake8==2.4.0
 flake8-import-order==0.5.3
 incuna-mail==4.0.0
 incuna-test-utils==6.2.7
-Pillow==2.7.0
+Pillow==8.3.2
 psycopg2==2.7.1
 pytz==2015.2
 WebTest==2.0.27
